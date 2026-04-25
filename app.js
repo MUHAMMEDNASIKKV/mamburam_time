@@ -4,14 +4,14 @@
 // ============================================
 
 // Configuration
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw63nEfrDHJ3EnBkNARbBFP6XAo_aqbY8TLv3zSQ2JxPzlUE4Lfl0AZGDtl73eXAVD90A/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw6am8LEttl7cg3WXNGEe1FooeNvKDv-ED9MqbB-U-ctX7uuymy8Gfs7ptZOYPwEKFo/exec";
 
 const SLOTS_PER_DEPARTMENT = 6;
 const EXTRA_SLOTS = 10;
 const TOTAL_TARGET_SLOTS = 100;
 
-// Phase 1: Thursday 7:15 AM - 8:45 AM (department-based, 6 slots each)
-// Phase 2: Thursday 8:45 AM - 10:00 AM (global pool: remaining slots + 10)
+// Phase 1: Sunday 9:15 PM - 9:20 PM (department-based, 6 slots each)
+// Phase 2: Sunday 9:20 PM - 9:30 PM (global pool: remaining slots + 10)
 // Closed: All other times
 
 // Complete student database with departments
@@ -1032,6 +1032,7 @@ const STUDENT_DATABASE = {
     "17112": { name: "Arif Zaid P P", department: "Media and Communication" },
     "17124": { name: "Arif Muhammad B", department: "Media and Communication" },
     "17192": { name: "Muhammed Nihal C", department: "Media and Communication" }
+
 };
 
 const ALL_DEPARTMENTS = [...new Set(Object.values(STUDENT_DATABASE).map(s => s.department))];
@@ -1087,24 +1088,28 @@ function getCurrentPhase() {
     // Adjust day for IST
     const istDay = (utcMinutes + istOffset >= 1440) ? (day + 1) % 7 : day;
     
-    // Thursday = 4
-    const isThursday = (istDay === 4);
+    // Sunday = 0
+    const isSunday = (istDay === 0);
     
-    // Phase 1: 7:15 to 8:45 (435 to 525 minutes)
-    const phase1Start = 7 * 60 + 15; // 435
-    const phase1End = 8 * 60 + 45;   // 525
+    // Phase 1: Sunday 9:15 PM to 9:20 PM
+    // 9:15 PM = 21:15 = 21*60+15 = 1275 minutes
+    // 9:20 PM = 21:20 = 21*60+20 = 1280 minutes
+    const phase1Start = 21 * 60 + 15; // 1275 (9:15 PM)
+    const phase1End = 21 * 60 + 20;   // 1280 (9:20 PM)
     
-    // Phase 2: 8:45 to 10:00 (525 to 600 minutes)
-    const phase2Start = 8 * 60 + 45;  // 525
-    const phase2End = 10 * 60;         // 600
+    // Phase 2: Sunday 9:20 PM to 9:30 PM
+    // 9:20 PM = 21:20 = 21*60+20 = 1280 minutes
+    // 9:30 PM = 21:30 = 21*60+30 = 1290 minutes
+    const phase2Start = 21 * 60 + 20;  // 1280 (9:20 PM)
+    const phase2End = 21 * 60 + 30;    // 1290 (9:30 PM)
     
-    if (!isThursday) return 'closed';
+    if (!isSunday) return 'closed';
     if (totalMinutes >= phase1Start && totalMinutes < phase1End) return 'phase1';
     if (totalMinutes >= phase2Start && totalMinutes < phase2End) return 'phase2';
     return 'closed';
 }
 
-function getNextThursdayInfo() {
+function getNextSundayInfo() {
     const now = new Date();
     const istOffset = 5.5 * 60;
     const utcMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
@@ -1115,23 +1120,23 @@ function getNextThursdayInfo() {
     const day = now.getUTCDay();
     const istDay = (utcMinutes + istOffset >= 1440) ? (day + 1) % 7 : day;
     
-    let targetThursday = new Date(now);
-    let daysUntilThursday = (4 - istDay + 7) % 7;
+    let targetSunday = new Date(now);
+    let daysUntilSunday = (0 - istDay + 7) % 7; // 0 = Sunday
     
-    const phase1StartMinutes = 7 * 60 + 15;
+    const phase1StartMinutes = 21 * 60 + 15; // 9:15 PM
     const currentTotalMinutes = istMinutes;
     
-    if (daysUntilThursday === 0 && currentTotalMinutes >= phase1StartMinutes) {
-        daysUntilThursday = 7;
+    if (daysUntilSunday === 0 && currentTotalMinutes >= phase1StartMinutes) {
+        daysUntilSunday = 7; // Next Sunday
     }
-    if (daysUntilThursday === 0 && currentTotalMinutes < phase1StartMinutes) {
-        daysUntilThursday = 0;
+    if (daysUntilSunday === 0 && currentTotalMinutes < phase1StartMinutes) {
+        daysUntilSunday = 0; // Today is Sunday before 9:15 PM
     }
     
-    targetThursday.setDate(now.getDate() + daysUntilThursday);
-    targetThursday.setUTCHours(7 - 5.5, 15, 0, 0); // 7:15 AM IST
+    targetSunday.setDate(now.getDate() + daysUntilSunday);
+    targetSunday.setUTCHours(21 - 5.5, 15, 0, 0); // 9:15 PM IST (21:15)
     
-    return targetThursday;
+    return targetSunday;
 }
 
 // ============================================
@@ -1146,12 +1151,7 @@ function updateTimer() {
         
         const now = new Date();
         const phase1End = new Date(now);
-        const istOffset = 5.5 * 60;
-        const utcMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
-        let istMinutes = utcMinutes + istOffset;
-        if (istMinutes >= 1440) istMinutes -= 1440;
-        
-        phase1End.setUTCHours(8 - 5.5, 45, 0, 0);
+        phase1End.setUTCHours(21 - 5.5, 20, 0, 0); // 9:20 PM IST (21:20)
         
         const diff = phase1End - now;
         if (diff > 0) {
@@ -1171,7 +1171,7 @@ function updateTimer() {
         
         const now = new Date();
         const phase2End = new Date(now);
-        phase2End.setUTCHours(10 - 5.5, 0, 0, 0);
+        phase2End.setUTCHours(21 - 5.5, 30, 0, 0); // 9:30 PM IST (21:30)
         
         const diff = phase2End - now;
         if (diff > 0) {
@@ -1189,20 +1189,20 @@ function updateTimer() {
         timerBox.className = 'timer-box timer-closed';
         timerText.innerHTML = '<i class="fas fa-lock mr-1"></i> Registration Closed';
         
-        const nextThursday = getNextThursdayInfo();
-        const diff = nextThursday - new Date();
+        const nextSunday = getNextSundayInfo();
+        const diff = nextSunday - new Date();
         
         if (diff > 0) {
             const days = Math.floor(diff / (1000 * 60 * 60 * 24));
             const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const mins = Math.floor((diff % (1000 * 60 * 60)) / 60000);
             const secs = Math.floor((diff % 60000) / 1000);
-            timerCountdown.textContent = `Opens in: ${days}d ${hours}h ${mins}m ${secs}s (Thursday 7:15 AM)`;
+            timerCountdown.textContent = `Opens in: ${days}d ${hours}h ${mins}m ${secs}s (Sunday 9:15 PM)`;
         }
         
         phaseInfo.classList.remove('hidden');
         phaseInfo.className = 'info-banner';
-        phaseText.textContent = 'Registration is only open on Thursdays from 7:15 AM to 10:00 AM IST.';
+        phaseText.textContent = 'Registration is only open on Sundays from 9:15 PM to 9:30 PM IST.';
     }
 }
 
@@ -1273,7 +1273,7 @@ function lookupStudent(enrol) {
     }
     
     if (currentPhase === 'closed') {
-        enrolError.textContent = "❌ Registration is currently closed. Opens Thursday 7:15 AM - 10:00 AM IST.";
+        enrolError.textContent = "❌ Registration is currently closed. Opens Sunday 9:15 PM - 9:30 PM IST.";
         enrolError.classList.remove("hidden");
         resetStudentUI();
         return;
@@ -1378,20 +1378,17 @@ function computeDepartmentSlots() {
         }
     }
     
-    // Calculate remaining per department (during phase 1)
     ALL_DEPARTMENTS.forEach(dept => {
         departmentSlots[dept].remaining = Math.max(0, SLOTS_PER_DEPARTMENT - departmentSlots[dept].filled);
     });
 }
 
 function calculateGlobalSlots() {
-    // Total remaining across all departments after phase 1
     let totalRemaining = 0;
     ALL_DEPARTMENTS.forEach(dept => {
         totalRemaining += departmentSlots[dept].remaining;
     });
     
-    // Add 10 extra slots for phase 2
     globalRemainingSlots = totalRemaining + EXTRA_SLOTS;
     globalTotalSlots = globalRemainingSlots;
 }
@@ -1449,7 +1446,7 @@ function renderPhase1Card() {
                 <p class="text-xs text-red-500 mt-2">No slots available. Try Phase 2.</p>
             </div>
         `;
-        departmentSlotInfo.innerHTML = '<i class="fas fa-exclamation-triangle mr-1 text-red-500"></i> All slots filled. Wait for Phase 2 (8:45 AM).';
+        departmentSlotInfo.innerHTML = '<i class="fas fa-exclamation-triangle mr-1 text-red-500"></i> All slots filled. Wait for Phase 2 (9:20 PM).';
         submitBtn.disabled = true;
         submitBtn.style.opacity = "0.6";
         submitBtn.style.cursor = "not-allowed";
@@ -1502,7 +1499,7 @@ function renderPhase2Card() {
             <div class="global-slot-card disabled">
                 <span class="phase-indicator phase-closed">Phase 2 - Global Pool</span>
                 <h3 class="font-semibold text-gray-800 mb-2">All Slots Filled</h3>
-                <p class="text-sm text-red-500">No more slots available. Try next Thursday.</p>
+                <p class="text-sm text-red-500">No more slots available. Try next Sunday.</p>
             </div>
         `;
         departmentSlotInfo.innerHTML = '<i class="fas fa-exclamation-triangle mr-1 text-red-500"></i> All slots exhausted.';
@@ -1596,7 +1593,7 @@ async function submitRegistration() {
     }
     
     if (currentPhase === 'closed') {
-        showAlert("❌ Registration is closed. Opens Thursday 7:15 AM - 10:00 AM IST.");
+        showAlert("❌ Registration is closed. Opens Sunday 9:15 PM - 9:30 PM IST.");
         return;
     }
     
