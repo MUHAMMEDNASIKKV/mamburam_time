@@ -1087,22 +1087,20 @@ function getCurrentPhase() {
     // Adjust day for IST
     const istDay = (utcMinutes + istOffset >= 1440) ? (day + 1) % 7 : day;
     
-    // Thursday = 4
-    const isThursday = (istDay === 4);
-    
-    // Phase 1: 7:15 to 8:45 (435 to 525 minutes)
-    const phase1Start = 7 * 60 + 15; // 435
-    const phase1End = 8 * 60 + 45;   // 525
-    
-    // Phase 2: 8:45 to 10:00 (525 to 600 minutes)
-    const phase2Start = 8 * 60 + 45;  // 525
-    const phase2End = 10 * 60;         // 600
-    
-    if (!isThursday) return 'closed';
-    if (totalMinutes >= phase1Start && totalMinutes < phase1End) return 'phase1';
-    if (totalMinutes >= phase2Start && totalMinutes < phase2End) return 'phase2';
-    return 'closed';
-}
+    // Sunday = 0
+const isSunday = (istDay === 0);
+
+// Phase 1: 7:45 PM to 8:30 PM (1185 to 1230 minutes) - Note: PM hours are 12+
+// Phase 1: 19:45 to 20:30 = 19*60+45 to 20*60+30
+const phase1Start = 19 * 60 + 45; // 1185 (7:45 PM)
+const phase1End = 20 * 60 + 30;   // 1230 (8:30 PM)
+
+// Phase 2: 9:30 PM to 10:30 PM (1290 to 1350 minutes)
+// 21:30 to 22:30 = 21*60+30 to 22*60+30
+const phase2Start = 21 * 60 + 30;  // 1290 (9:30 PM)
+const phase2End = 22 * 60 + 30;    // 1350 (10:30 PM)
+
+if (!isSunday) return 'closed';
 
 function getNextThursdayInfo() {
     const now = new Date();
@@ -1115,21 +1113,21 @@ function getNextThursdayInfo() {
     const day = now.getUTCDay();
     const istDay = (utcMinutes + istOffset >= 1440) ? (day + 1) % 7 : day;
     
-    let targetThursday = new Date(now);
-    let daysUntilThursday = (4 - istDay + 7) % 7;
-    
-    const phase1StartMinutes = 7 * 60 + 15;
-    const currentTotalMinutes = istMinutes;
-    
-    if (daysUntilThursday === 0 && currentTotalMinutes >= phase1StartMinutes) {
-        daysUntilThursday = 7;
-    }
-    if (daysUntilThursday === 0 && currentTotalMinutes < phase1StartMinutes) {
-        daysUntilThursday = 0;
-    }
-    
-    targetThursday.setDate(now.getDate() + daysUntilThursday);
-    targetThursday.setUTCHours(7 - 5.5, 15, 0, 0); // 7:15 AM IST
+   let targetSunday = new Date(now);
+let daysUntilSunday = (0 - istDay + 7) % 7; // 0 = Sunday
+
+const phase1StartMinutes = 19 * 60 + 45; // 7:45 PM
+const currentTotalMinutes = istMinutes;
+
+if (daysUntilSunday === 0 && currentTotalMinutes >= phase1StartMinutes) {
+    daysUntilSunday = 7;
+}
+if (daysUntilSunday === 0 && currentTotalMinutes < phase1StartMinutes) {
+    daysUntilSunday = 0;
+}
+
+targetSunday.setDate(now.getDate() + daysUntilSunday);
+targetSunday.setUTCHours(19 - 5.5, 45, 0, 0); // 7:45 PM IST (19:45)
     
     return targetThursday;
 }
@@ -1151,7 +1149,7 @@ function updateTimer() {
         let istMinutes = utcMinutes + istOffset;
         if (istMinutes >= 1440) istMinutes -= 1440;
         
-        phase1End.setUTCHours(8 - 5.5, 45, 0, 0);
+        phase1End.setUTCHours(20 - 5.5, 30, 0, 0); // 8:30 PM IST (20:30)
         
         const diff = phase1End - now;
         if (diff > 0) {
