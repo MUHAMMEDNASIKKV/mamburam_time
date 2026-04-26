@@ -1088,15 +1088,15 @@ function getCurrentPhase() {
     const istDay = (utcMinutes + istOffset >= 1440) ? (day + 1) % 7 : day;
     
     // Thursday = 4
-    const isThursday = (istDay === 4);
+    const isThursday = (istDay === 0);
     
     // Phase 1: 7:15 to 8:45 (435 to 525 minutes)
     const phase1Start = 7 * 60 + 15; // 435
-    const phase1End = 8 * 60 + 45;   // 525
+    const phase1End = 7 * 60 + 20;   // 525
     
     // Phase 2: 8:45 to 10:00 (525 to 600 minutes)
-    const phase2Start = 8 * 60 + 45;  // 525
-    const phase2End = 10 * 60;         // 600
+    const phase2Start = 7 * 60 + 20;  // 525
+    const phase2End = 7 * 60 + 25;         // 600
     
     if (!isThursday) return 'closed';
     if (totalMinutes >= phase1Start && totalMinutes < phase1End) return 'phase1';
@@ -1116,7 +1116,7 @@ function getNextThursdayInfo() {
     const istDay = (utcMinutes + istOffset >= 1440) ? (day + 1) % 7 : day;
     
     let targetThursday = new Date(now);
-    let daysUntilThursday = (4 - istDay + 7) % 7;
+    let daysUntilThursday = (0 - istDay + 7) % 7;
     
     const phase1StartMinutes = 7 * 60 + 15;
     const currentTotalMinutes = istMinutes;
@@ -1142,7 +1142,7 @@ function updateTimer() {
     
     if (currentPhase === 'phase1') {
         timerBox.className = 'timer-box';
-        timerText.innerHTML = '<i class="fas fa-clock mr-1"></i> Phase 1: Department Registration Open';
+        timerText.innerHTML = '<i class="fas fa-clock mr-1"></i> Phase 1: Mamburam Registration Open';
         
         const now = new Date();
         const phase1End = new Date(now);
@@ -1151,7 +1151,7 @@ function updateTimer() {
         let istMinutes = utcMinutes + istOffset;
         if (istMinutes >= 1440) istMinutes -= 1440;
         
-        phase1End.setUTCHours(8 - 5.5, 45, 0, 0);
+        phase1End.setUTCHours(7 - 5.5, 20, 0, 0);
         
         const diff = phase1End - now;
         if (diff > 0) {
@@ -1171,7 +1171,7 @@ function updateTimer() {
         
         const now = new Date();
         const phase2End = new Date(now);
-        phase2End.setUTCHours(10 - 5.5, 0, 0, 0);
+        phase2End.setUTCHours(7 - 5.5, 25, 0, 0);
         
         const diff = phase2End - now;
         if (diff > 0) {
