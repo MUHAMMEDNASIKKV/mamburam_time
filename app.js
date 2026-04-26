@@ -10,8 +10,8 @@ const SLOTS_PER_DEPARTMENT = 6;
 const EXTRA_SLOTS = 10;
 const TOTAL_TARGET_SLOTS = 100;
 
-// Phase 1: Thursday 7:15 AM - 8:45 AM (department-based, 6 slots each)
-// Phase 2: Thursday 8:45 AM - 10:00 AM (global pool: remaining slots + 10)
+// Phase 1: Thursday 6:30 AM - 7:30 AM (department-based, 6 slots each)
+// Phase 2: Thursday 7:30 AM - 8:45 AM (global pool: remaining slots + 10)
 // Closed: All other times
 
 // Complete student database with departments
@@ -1090,13 +1090,13 @@ function getCurrentPhase() {
     // Thursday = 4
     const isThursday = (istDay === 4);
     
-    // Phase 1: 7:15 to 8:45 (435 to 525 minutes)
-    const phase1Start = 7 * 60 + 15; // 435
-    const phase1End = 8 * 60 + 45;   // 525
+    // Phase 1: 6:30 AM to 7:30 AM (390 to 450 minutes)
+    const phase1Start = 6 * 60 + 30; // 390 (6:30 AM)
+    const phase1End = 7 * 60 + 30;   // 450 (7:30 AM)
     
-    // Phase 2: 8:45 to 10:00 (525 to 600 minutes)
-    const phase2Start = 8 * 60 + 45;  // 525
-    const phase2End = 10 * 60;         // 600
+    // Phase 2: 7:30 AM to 8:45 AM (450 to 525 minutes)
+    const phase2Start = 7 * 60 + 30;  // 450 (7:30 AM)
+    const phase2End = 8 * 60 + 45;    // 525 (8:45 AM)
     
     if (!isThursday) return 'closed';
     if (totalMinutes >= phase1Start && totalMinutes < phase1End) return 'phase1';
@@ -1118,7 +1118,7 @@ function getNextThursdayInfo() {
     let targetThursday = new Date(now);
     let daysUntilThursday = (4 - istDay + 7) % 7;
     
-    const phase1StartMinutes = 7 * 60 + 15;
+    const phase1StartMinutes = 6 * 60 + 30; // 6:30 AM
     const currentTotalMinutes = istMinutes;
     
     if (daysUntilThursday === 0 && currentTotalMinutes >= phase1StartMinutes) {
@@ -1129,7 +1129,7 @@ function getNextThursdayInfo() {
     }
     
     targetThursday.setDate(now.getDate() + daysUntilThursday);
-    targetThursday.setUTCHours(7 - 5.5, 15, 0, 0); // 7:15 AM IST
+    targetThursday.setUTCHours(6 - 5.5, 30, 0, 0); // 6:30 AM IST
     
     return targetThursday;
 }
@@ -1151,7 +1151,7 @@ function updateTimer() {
         let istMinutes = utcMinutes + istOffset;
         if (istMinutes >= 1440) istMinutes -= 1440;
         
-        phase1End.setUTCHours(8 - 5.5, 45, 0, 0);
+        phase1End.setUTCHours(7 - 5.5, 30, 0, 0); // 7:30 AM IST
         
         const diff = phase1End - now;
         if (diff > 0) {
@@ -1171,7 +1171,7 @@ function updateTimer() {
         
         const now = new Date();
         const phase2End = new Date(now);
-        phase2End.setUTCHours(10 - 5.5, 0, 0, 0);
+        phase2End.setUTCHours(8 - 5.5, 45, 0, 0); // 8:45 AM IST
         
         const diff = phase2End - now;
         if (diff > 0) {
@@ -1197,12 +1197,12 @@ function updateTimer() {
             const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const mins = Math.floor((diff % (1000 * 60 * 60)) / 60000);
             const secs = Math.floor((diff % 60000) / 1000);
-            timerCountdown.textContent = `Opens in: ${days}d ${hours}h ${mins}m ${secs}s (Thursday 7:15 AM)`;
+            timerCountdown.textContent = `Opens in: ${days}d ${hours}h ${mins}m ${secs}s (Thursday 6:30 AM)`;
         }
         
         phaseInfo.classList.remove('hidden');
         phaseInfo.className = 'info-banner';
-        phaseText.textContent = 'Registration is only open on Thursdays from 7:15 AM to 10:00 AM IST.';
+        phaseText.textContent = 'Registration is only open on Thursdays from 6:30 AM to 8:45 AM IST.';
     }
 }
 
@@ -1218,7 +1218,7 @@ setupEventListeners();
     updateTimer();
     updateUIForPhase();
     
-    console.log('✅ Portal ready');
+    console.log(' Portal ready');
     
     // Update timer every second
     setInterval(() => {
@@ -1273,7 +1273,7 @@ function lookupStudent(enrol) {
     }
     
     if (currentPhase === 'closed') {
-        enrolError.textContent = "❌ Registration is currently closed. Opens Thursday 7:15 AM - 10:00 AM IST.";
+        enrolError.textContent = " Registration is currently closed. Opens Thursday 6:30 AM - 8:45 AM IST.";
         enrolError.classList.remove("hidden");
         resetStudentUI();
         return;
@@ -1282,7 +1282,7 @@ function lookupStudent(enrol) {
     const studentData = STUDENT_DATABASE[cleanEnrol];
     
     if (!studentData) {
-        enrolError.textContent = "❌ Enrolment number not found";
+        enrolError.textContent = " Enrolment number not found";
         enrolError.classList.remove("hidden");
         resetStudentUI();
         return;
@@ -1356,7 +1356,7 @@ async function loadRegistrationsData() {
             registrationsData = data.data;
         }
         
-        console.log(`📋 Loaded ${registrationsData.length} registrations`);
+        console.log(` Loaded ${registrationsData.length} registrations`);
     } catch (err) {
         console.warn("Registrations fetch failed");
     }
@@ -1449,7 +1449,7 @@ function renderPhase1Card() {
                 <p class="text-xs text-red-500 mt-2">No slots available. Try Phase 2.</p>
             </div>
         `;
-        departmentSlotInfo.innerHTML = '<i class="fas fa-exclamation-triangle mr-1 text-red-500"></i> All slots filled. Wait for Phase 2 (8:45 AM).';
+        departmentSlotInfo.innerHTML = '<i class="fas fa-exclamation-triangle mr-1 text-red-500"></i> All slots filled. Wait for Phase 2 (7:30 AM).';
         submitBtn.disabled = true;
         submitBtn.style.opacity = "0.6";
         submitBtn.style.cursor = "not-allowed";
@@ -1591,12 +1591,12 @@ function updateUIForPhase() {
 // ============================================
 async function submitRegistration() {
     if (!currentStudent) {
-        showAlert("❌ Please enter a valid enrolment number first.");
+        showAlert(" Please enter a valid enrolment number first.");
         return;
     }
     
     if (currentPhase === 'closed') {
-        showAlert("❌ Registration is closed. Opens Thursday 7:15 AM - 10:00 AM IST.");
+        showAlert(" Registration is closed. Opens Thursday 6:30 AM - 8:45 AM IST.");
         return;
     }
     
@@ -1605,7 +1605,7 @@ async function submitRegistration() {
     );
     
     if (alreadyRegistered) {
-        showAlert("⚠️ You have already registered. Registration cannot be changed.");
+        showAlert(" You have already registered. Registration cannot be changed.");
         return;
     }
     
@@ -1614,7 +1614,7 @@ async function submitRegistration() {
     if (currentPhase === 'phase1') {
         const deptData = departmentSlots[dept];
         if (!deptData || deptData.remaining <= 0) {
-            showAlert(`❌ No slots available for ${dept}.`);
+            showAlert(` No slots available for ${dept}.`);
             renderPhase1Card();
             return;
         }
@@ -1622,7 +1622,7 @@ async function submitRegistration() {
     
     if (currentPhase === 'phase2') {
         if (globalRemainingSlots <= 0) {
-            showAlert("❌ No global slots available.");
+            showAlert(" No global slots available.");
             renderPhase2Card();
             return;
         }
@@ -1661,7 +1661,7 @@ async function submitRegistration() {
             computeDepartmentSlots();
             calculateGlobalSlots();
             
-            showAlert(`✅ Success! Registered for ${dept}.`, false);
+            showAlert(` Success! Registered for ${dept}.`, false);
             
             statusContainer.classList.remove("hidden");
             statusDisplay.innerHTML = `<span class="status-badge status-submitted"><i class="fas fa-check-circle mr-1"></i> Registered for ${dept}</span>`;
@@ -1670,7 +1670,7 @@ async function submitRegistration() {
             submitBtn.style.opacity = "0.6";
             submitBtn.style.cursor = "not-allowed";
         } else {
-            showAlert(`❌ Registration failed: ${result.error || "Unknown error"}`);
+            showAlert(` Registration failed: ${result.error || "Unknown error"}`);
             await loadRegistrationsData();
             computeDepartmentSlots();
             calculateGlobalSlots();
@@ -1719,4 +1719,4 @@ document.addEventListener("keydown", function(e) {
     }
 });
 
-console.log('%c⚡ PG Quota Registration Portal - Time-Based ⚡', 'color: #059669; font-size: 16px; font-weight: bold;');
+console.log('%c PG Quota Registration Portal - Time-Based ', 'color: #059669; font-size: 16px; font-weight: bold;');
