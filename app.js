@@ -1202,7 +1202,7 @@ function updateTimer() {
         
         phaseInfo.classList.remove('hidden');
         phaseInfo.className = 'info-banner';
-        phaseText.textContent = 'Registration is only open on Thursdays from 6:30 AM to 8:45 AM IST.';
+        phaseText.textContent = 'Registration is only open on Thursdays from 6:30 AM to 8:45 AM.';
     }
 }
 
@@ -1273,7 +1273,7 @@ function lookupStudent(enrol) {
     }
     
     if (currentPhase === 'closed') {
-        enrolError.textContent = " Registration is currently closed. Opens Thursday 6:30 AM - 8:45 AM IST.";
+        enrolError.textContent = " Registration is currently closed. Opens Thursday 6:30 AM - 8:45 AM.";
         enrolError.classList.remove("hidden");
         resetStudentUI();
         return;
