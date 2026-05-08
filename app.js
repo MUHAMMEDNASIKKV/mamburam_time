@@ -1591,10 +1591,10 @@ function renderPhase1Card() {
             <div class="department-card disabled">
                 <h3 class="font-semibold text-gray-800 text-sm mb-2">${dept}</h3>
                 <div class="slot-badge slot-full">Full (6/6)</div>
-                <p class="text-xs text-red-500 mt-2">Your department is full. Try Phase 2 at 7:30 AM.</p>
+                <p class="text-xs text-red-500 mt-2">Your department is full. Try Phase 2 at 7:25 AM.</p>
             </div>
         `;
-        departmentSlotInfo.innerHTML = '<i class="fas fa-exclamation-triangle mr-1 text-red-500"></i> Department full. Phase 2 opens at 7:30 AM!';
+        departmentSlotInfo.innerHTML = '<i class="fas fa-exclamation-triangle mr-1 text-red-500"></i> Department full. Phase 2 opens at 7:25 AM!';
         submitBtn.disabled = true;
         submitBtn.style.opacity = "0.6";
         submitBtn.style.cursor = "not-allowed";
@@ -1730,7 +1730,7 @@ async function submitRegistration() {
     }
 
     if (currentPhase === 'closed') {
-        showAlert("🔒 Registration is closed. Opens Thursday 6:30 AM - 8:45 AM IST.");
+        showAlert("🔒 Registration is closed. Opens Thursday 6:20 AM - 8:45 AM IST.");
         return;
     }
 
