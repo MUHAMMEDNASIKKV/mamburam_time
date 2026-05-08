@@ -5,16 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>PG MAMBURAM QUOTA</title>
     <!-- Tailwind + Font Awesome + Google Fonts -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <style>
-        * { font-family: 'Inter', sans-serif; }
-        body { background: #f8fafc; }
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        body {
+            background: #f8fafc;
+        }
         .card-modern {
             background: white;
             border-radius: 28px;
-            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.08);
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.08);
             transition: all 0.2s;
         }
         .input-field {
@@ -29,7 +34,7 @@
         .input-field:focus {
             outline: none;
             border-color: #0f3b2c;
-            box-shadow: 0 0 0 3px rgba(15,59,44,0.1);
+            box-shadow: 0 0 0 3px rgba(15, 59, 44, 0.1);
         }
         .input-field:read-only {
             background-color: #f3f4f6;
@@ -47,7 +52,7 @@
         .department-card.selected {
             border-color: #0f3b2c;
             background: #f0f9f4;
-            box-shadow: 0 8px 20px rgba(15,59,44,0.12);
+            box-shadow: 0 8px 20px rgba(15, 59, 44, 0.12);
         }
         .department-card.highlight {
             border-color: #0f3b2c;
@@ -81,7 +86,7 @@
             padding: 12px 28px;
             border-radius: 60px;
             font-weight: 600;
-            box-shadow: 0 10px 25px -5px rgba(220,38,38,0.3);
+            box-shadow: 0 10px 25px -5px rgba(220, 38, 38, 0.3);
             z-index: 1000;
             opacity: 0;
             transition: opacity 0.2s, transform 0.2s;
@@ -94,8 +99,15 @@
             transform: translateX(-50%) translateY(0);
         }
         @media (max-width: 640px) {
-            .alert-popup { white-space: normal; width: 90%; text-align: center; font-size: 0.85rem; }
-            .department-card { padding: 0.8rem; }
+            .alert-popup {
+                white-space: normal;
+                width: 90%;
+                text-align: center;
+                font-size: 0.85rem;
+            }
+            .department-card {
+                padding: 0.8rem;
+            }
         }
         .status-badge {
             display: inline-block;
@@ -122,8 +134,12 @@
             animation: spin 1s linear infinite;
         }
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
         }
         .department-grid {
             display: grid;
@@ -185,15 +201,21 @@
             background: #fee2e2;
             color: #991b1b;
         }
+        .phase2-stats {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 12px;
+            padding: 0.75rem;
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+        }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-6">
-
     <!-- MAIN PORTAL CARD -->
     <div class="max-w-xl w-full mx-auto card-modern p-5 md:p-8 transition-all">
         <div class="text-center mb-6">
             <h1 class="text-2xl md:text-3xl font-extrabold text-gray-800">MAMBURAM QUOTA</h1>
-           
             <div class="h-1 w-20 bg-emerald-700 mx-auto rounded-full mt-3"></div>
         </div>
 
@@ -201,7 +223,6 @@
         <div id="timerBox" class="timer-box">
             <i class="fas fa-clock text-2xl mb-1"></i>
             <p id="timerText" class="font-semibold">Loading...</p>
-            <p id="timerCountdown" class="text-sm opacity-90 mt-1"></p>
         </div>
 
         <!-- Phase Info -->
@@ -259,6 +280,7 @@
                     <!-- Department card or global slot card injected -->
                 </div>
                 <div id="departmentSlotInfo" class="text-xs text-gray-500 mt-2"></div>
+                <div id="phase2Stats" class="phase2-stats hidden"></div>
             </div>
 
             <!-- Submit Button -->
@@ -269,13 +291,14 @@
 
         <!-- Footer note -->
         <div class="mt-8 text-center text-xs text-gray-400 border-t pt-5">
-            <i class="fas fa-clock mr-1"></i> Registration open every Thursday 6:30 AM - 8:45 AM
+            <i class="fas fa-clock mr-1"></i> Phase 1: Thu 6:20-7:20 AM | Phase 2: Thu 7:25-8:45 AM
         </div>
     </div>
 
     <!-- global alert popup -->
     <div id="alertPopup" class="alert-popup">Message</div>
 
-    <script src="app.js"></script>
+    <script src="app.js">
+    </script>
 </body>
 </html>
