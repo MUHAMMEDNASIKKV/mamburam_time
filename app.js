@@ -1307,7 +1307,7 @@ function updateTimer() {
         timerText.innerHTML = '<i class="fas fa-lock mr-1"></i> Registration Closed';
         phaseInfo.classList.remove('hidden');
         phaseInfo.className = 'info-banner';
-        phaseText.textContent = 'Registration only open on Thursdays from 6:30 AM to 8:45 AM IST.';
+        phaseText.textContent = 'Registration only open on Thursdays from 6:20 AM to 8:45 AM IST.';
     }
 }
 
@@ -1323,7 +1323,7 @@ setupEventListeners();
     updateTimer();
     updateUIForPhase();
 
-    console.log('🚀 Portal ready - Phase 1: 6/dept | Phase 2: First 100 submissions');
+    console.log('🚀 Portal ready - Phase 1: 6/dept | Phase 2: Untill reach 100 submissions');
 
     // Check phase every 30 seconds
     setInterval(() => {
