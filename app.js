@@ -1272,7 +1272,7 @@ function getCurrentPhase() {
 
     // Phase 2: 7:30 AM to 8:45 AM (450 to 525 minutes)
     const phase2Start = 7 * 60 + 25; // 450 (7:30 AM)
-    const phase2End = 8 * 60 + 45; // 525 (8:45 AM)
+    const phase2End = 11 * 60 + 10; // 525 (8:45 AM)
 
     if (!isThursday) return 'closed';
     if (totalMinutes >= phase1Start && totalMinutes < phase1End) return 'phase1';
