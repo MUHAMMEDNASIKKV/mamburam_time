@@ -1,30 +1,40 @@
 // ============================================
 // PG QUOTA REGISTRATION PORTAL
 // Frontend JavaScript (app.js) - Time-Based
+// Student data loaded from Google Sheet CSV
 // Phase 1: 6 slots per department (strict limit)
-// Phase 2: Unlimited slots per department
+// Phase 2: Unlimited submissions
 // ============================================
 
 // Configuration
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxXB1AvSRvz5LA0F3fTlNBFLLn0_PZJ0nMt5PuOwnh_6JVWuKyqYCUlk78u81_oY48/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwgPwIWk9-Df1XfntNTR8VdVSrauSVER6fSyDhF00rKvGMFFowhxzhflkahMByz8g4/exec";
 const STUDENT_DATA_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTVGIPl0D_8tsJi38WRpOJrme6f-6EITTlKsepIAQj9jDqpAlG8AaeMjtsmUMFghwwRAeigIPlgN8Ru/pub?gid=0&single=true&output=csv";
 
 const SLOTS_PER_DEPARTMENT = 6; // Only applies to Phase 1
 
 // Student database (will be loaded from CSV)
 let STUDENT_DATABASE = {};
+let ALL_DEPARTMENTS = [];
 
 // ============================================
 // CSV PARSER
 // ============================================
 function parseCSV(csvText) {
-    const lines = csvText.split('\n');
-    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+    const lines = csvText.split('\n').filter(line => line.trim());
+    if (lines.length < 2) {
+        console.error('CSV is empty or has no data rows');
+        return {};
+    }
+    
+    const headers = parseCSVLine(lines[0]).map(h => h.trim().toLowerCase());
     
     // Find column indices
     const enrolIdx = headers.findIndex(h => h === 'enrl no' || h === 'enrol no' || h === 'enrol');
     const nameIdx = headers.findIndex(h => h === 'name');
     const deptIdx = headers.findIndex(h => h === 'department');
+    
+    console.log('CSV Headers:', headers);
+    console.log('Column indices:', { enrolIdx, nameIdx, deptIdx });
     
     if (enrolIdx === -1 || nameIdx === -1 || deptIdx === -1) {
         console.error('Required columns not found in CSV');
@@ -34,9 +44,6 @@ function parseCSV(csvText) {
     const database = {};
     
     for (let i = 1; i < lines.length; i++) {
-        if (!lines[i].trim()) continue; // Skip empty lines
-        
-        // Handle CSV parsing properly (respecting quotes)
         const values = parseCSVLine(lines[i]);
         
         if (values.length < Math.max(enrolIdx, nameIdx, deptIdx) + 1) continue;
@@ -53,7 +60,6 @@ function parseCSV(csvText) {
     return database;
 }
 
-// Helper function to parse a CSV line respecting quotes
 function parseCSVLine(line) {
     const result = [];
     let current = '';
@@ -81,34 +87,41 @@ function parseCSVLine(line) {
 // ============================================
 async function loadStudentData() {
     try {
-        console.log('📥 Loading student data from CSV...');
+        console.log('📥 Loading student data from Google Sheet CSV...');
         const response = await fetch(STUDENT_DATA_CSV_URL);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const csvText = await response.text();
         STUDENT_DATABASE = parseCSV(csvText);
         
-        // Update ALL_DEPARTMENTS
-        window.ALL_DEPARTMENTS = [...new Set(Object.values(STUDENT_DATABASE).map(s => s.department))].sort();
+        // Extract unique departments
+        ALL_DEPARTMENTS = [...new Set(Object.values(STUDENT_DATABASE).map(s => s.department))].sort();
         
         console.log(`✅ Loaded ${Object.keys(STUDENT_DATABASE).length} students from CSV`);
-        console.log(`📚 ${window.ALL_DEPARTMENTS.length} departments found`);
+        console.log(`📚 ${ALL_DEPARTMENTS.length} departments found`);
+        console.log('Departments:', ALL_DEPARTMENTS);
+        
+        // Sample check
+        const sampleKeys = Object.keys(STUDENT_DATABASE).slice(0, 3);
+        console.log('Sample students:', sampleKeys.map(k => ({ enrol: k, ...STUDENT_DATABASE[k] })));
+        
+        return true;
     } catch (error) {
         console.error('❌ Failed to load student data:', error);
         showAlert('Failed to load student data. Please refresh the page.', true);
+        return false;
     }
 }
-
-// ALL_DEPARTMENTS will be populated after CSV load
-let ALL_DEPARTMENTS = [];
 
 // ============================================
 // GLOBAL STATE
 // ============================================
 let registrationsData = [];
-let departmentSlots = {}; // Only used for Phase 1 display
+let departmentSlots = {}; // Phase 1 slot tracking
 let currentStudent = null;
 let currentPhase = 'closed'; // 'phase1', 'phase2', 'closed'
-let phase2RegistrationCount = 0; // Track Phase 2 total registrations
-let userSubmissionPosition = null; // Track user's position in submissions
+let phase2RegistrationCount = 0;
 
 // DOM Elements
 const enrolInput = document.getElementById('enrolNo');
@@ -138,31 +151,29 @@ function getCurrentPhase() {
     const now = new Date();
 
     // Convert to IST
-    const istOffset = 5.5 * 60; // 5 hours 30 minutes in minutes
+    const istOffset = 5.5 * 60; // 330 minutes
     const utcMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
     let istMinutes = utcMinutes + istOffset;
     if (istMinutes >= 1440) istMinutes -= 1440;
     if (istMinutes < 0) istMinutes += 1440;
 
-    const totalMinutes = istMinutes;
     const day = now.getUTCDay();
-    // Adjust day for IST
     const istDay = (utcMinutes + istOffset >= 1440) ? (day + 1) % 7 : day;
 
     // Thursday = 4
     const isThursday = (istDay === 5);
 
     // Phase 1: 6:20 AM to 7:20 AM (380 to 440 minutes)
-    const phase1Start = 15 * 60 + 15; // 380 (6:20 AM)
-    const phase1End = 15 * 60 + 20; // 440 (7:20 AM)
+    const phase1Start = 15 * 60 + 42; // 380 (6:20 AM)
+    const phase1End = 15 * 60 + 50;   // 440 (7:20 AM)
 
     // Phase 2: 7:20 AM to 8:45 AM (440 to 525 minutes)
-    const phase2Start = 15 * 60 + 20; // 440 (7:20 AM)
-    const phase2End = 15 * 60 + 30; // 525 (8:45 AM)
+    const phase2Start = 15 * 60 + 50;  // 440 (7:20 AM)
+    const phase2End = 16 * 60 + 10;    // 525 (8:45 AM)
 
     if (!isThursday) return 'closed';
-    if (totalMinutes >= phase1Start && totalMinutes < phase1End) return 'phase1';
-    if (totalMinutes >= phase2Start && totalMinutes < phase2End) return 'phase2';
+    if (istMinutes >= phase1Start && istMinutes < phase1End) return 'phase1';
+    if (istMinutes >= phase2Start && istMinutes < phase2End) return 'phase2';
     return 'closed';
 }
 
@@ -182,7 +193,7 @@ function updateTimer() {
 
     } else if (currentPhase === 'phase2') {
         timerBox.className = 'timer-box';
-        timerText.innerHTML = '<i class="fas fa-clock mr-1"></i> Phase 2: Open Registration (No per-department limit)';
+        timerText.innerHTML = '<i class="fas fa-clock mr-1"></i> Phase 2: Open Registration (No limits)';
         phaseInfo.classList.remove('hidden');
         phaseInfo.className = 'info-banner';
         phaseText.textContent = 'Phase 2: Registration is open to everyone. No department limits. (7:20 AM - 8:45 AM)';
@@ -203,22 +214,30 @@ function updateTimer() {
 setupEventListeners();
 
 (async function init() {
-    // Load student data from CSV first
-    await loadStudentData();
+    console.log('🚀 Initializing PG Quota Portal...');
+    
+    // Load student data first
+    const dataLoaded = await loadStudentData();
+    if (!dataLoaded) {
+        console.error('Failed to load student data, portal may not work correctly');
+    }
     
     await loadRegistrationsData();
-    analyzeRegistrations();
     computeDepartmentSlots();
     updateTimer();
     updateUIForPhase();
 
-    console.log('🚀 Portal ready - Phase 1: 6/dept | Phase 2: Unlimited submissions');
-    console.log(`📚 Departments: ${ALL_DEPARTMENTS.length} | Students: ${Object.keys(STUDENT_DATABASE).length}`);
+    console.log('🚀 Portal ready!');
+    console.log(`   Phase 1: 6 slots per department`);
+    console.log(`   Phase 2: Unlimited submissions`);
+    console.log(`   Students loaded: ${Object.keys(STUDENT_DATABASE).length}`);
+    console.log(`   Departments: ${ALL_DEPARTMENTS.length}`);
 
     // Check phase every 30 seconds
     setInterval(() => {
         const newPhase = getCurrentPhase();
         if (newPhase !== currentPhase) {
+            console.log(`Phase changed: ${currentPhase} -> ${newPhase}`);
             currentPhase = newPhase;
             updateTimer();
             updateUIForPhase();
@@ -232,7 +251,6 @@ setupEventListeners();
     // Background refresh
     setInterval(async () => {
         await loadRegistrationsData();
-        analyzeRegistrations();
         computeDepartmentSlots();
         if (currentStudent) {
             checkExistingRegistration();
@@ -282,33 +300,6 @@ function lookupStudent(enrol) {
         return;
     }
 
-    // If registration is closed, show status only
-    if (currentPhase === 'closed') {
-        enrolError.textContent = "🔒 Registration is currently closed. Opens Thursday 6:20 AM - 8:45 AM.";
-        enrolError.classList.remove("hidden");
-        const studentData = STUDENT_DATABASE[cleanEnrol];
-        if (studentData) {
-            currentStudent = {
-                enrol: cleanEnrol,
-                name: studentData.name,
-                department: studentData.department
-            };
-            studentNameField.value = currentStudent.name;
-            studentDepartmentField.value = currentStudent.department;
-            checkExistingRegistration();
-            selectionContainer.classList.add('hidden');
-            statusContainer.classList.remove('hidden');
-            if (!registrationsData.some(r => String(r.enrol).trim() === cleanEnrol && r.department)) {
-                statusDisplay.innerHTML = `<span class="status-badge status-not-submitted"><i class="fas fa-times-circle mr-1"></i> Not yet registered</span>`;
-            }
-        } else {
-            resetStudentUI();
-            enrolError.textContent = "❌ Enrolment number not found in database";
-            enrolError.classList.remove("hidden");
-        }
-        return;
-    }
-
     const studentData = STUDENT_DATABASE[cleanEnrol];
 
     if (!studentData) {
@@ -334,23 +325,20 @@ function lookupStudent(enrol) {
 }
 
 function checkExistingRegistration() {
+    if (!currentStudent) return;
+    
     const existingRegistration = registrationsData.find(r =>
-        String(r.enrol).trim() === String(currentStudent.enrol).trim()
+        String(r.enrol).trim() === String(currentStudent.enrol).trim() &&
+        r.department &&
+        r.phase
     );
 
-    if (existingRegistration && existingRegistration.department) {
+    if (existingRegistration) {
         statusContainer.classList.remove("hidden");
-        const regPhase = existingRegistration.phase || 'unknown';
+        
+        const regPhase = existingRegistration.phase;
         const regDate = existingRegistration.submission_date || '';
-        
-        // Find user's position in all submissions
-        const allSubmissions = registrationsData
-            .filter(r => r.department && r.submission_date)
-            .sort((a, b) => new Date(a.submission_date) - new Date(b.submission_date));
-        
-        const userPosition = allSubmissions.findIndex(r => 
-            String(r.enrol).trim() === String(currentStudent.enrol).trim()
-        ) + 1;
+        const position = existingRegistration.position || 'N/A';
         
         let phaseLabel = '';
         if (regPhase === 'phase1') {
@@ -362,13 +350,20 @@ function checkExistingRegistration() {
         }
         
         statusDisplay.innerHTML = `
-            <span class="status-badge status-submitted">
-                <i class="fas fa-check-circle mr-1"></i> 
-                Already Registered (${phaseLabel})<br>
-                <small>Department: ${existingRegistration.department}</small><br>
-                <small>Position: #${userPosition} of ${allSubmissions.length}</small><br>
-                <small>Time: ${regDate}</small>
-            </span>
+            <div class="registration-details">
+                <span class="status-badge status-submitted mb-2">
+                    <i class="fas fa-check-circle mr-1"></i> Already Registered
+                </span>
+                <div class="mt-2 text-sm">
+                    <div><strong>Phase:</strong> ${phaseLabel}</div>
+                    <div><strong>Department:</strong> ${existingRegistration.department}</div>
+                    <div>
+                        <strong>Position:</strong> 
+                        <span class="position-badge">#${position}</span>
+                    </div>
+                    <div><strong>Submission Time:</strong> ${regDate}</div>
+                </div>
+            </div>
         `;
         selectionContainer.classList.add("hidden");
         submitBtn.disabled = true;
@@ -397,7 +392,6 @@ function resetStudentUI() {
     submitBtn.disabled = false;
     submitBtn.style.opacity = "1";
     submitBtn.style.cursor = "pointer";
-    userSubmissionPosition = null;
 }
 
 // ============================================
@@ -426,31 +420,12 @@ async function loadRegistrationsData() {
 }
 
 // ============================================
-// ANALYZE REGISTRATIONS
-// ============================================
-function analyzeRegistrations() {
-    // Count Phase 2 registrations
-    phase2RegistrationCount = 0;
-    
-    for (const reg of registrationsData) {
-        const phase = reg.phase || 'phase1';
-        
-        if (phase === 'phase2') {
-            phase2RegistrationCount++;
-        }
-    }
-    
-    console.log(`Phase 1: ${registrationsData.filter(r => (r.phase || 'phase1') === 'phase1').length} registrations`);
-    console.log(`Phase 2: ${phase2RegistrationCount} registrations`);
-}
-
-// ============================================
 // DEPARTMENT SLOTS (Phase 1 only)
 // ============================================
 function computeDepartmentSlots() {
     departmentSlots = {};
     
-    // Initialize all departments with 0 filled
+    // Initialize all departments
     ALL_DEPARTMENTS.forEach(dept => {
         departmentSlots[dept] = { filled: 0, remaining: SLOTS_PER_DEPARTMENT };
     });
@@ -458,7 +433,7 @@ function computeDepartmentSlots() {
     // Count Phase 1 registrations per department
     for (const reg of registrationsData) {
         const dept = reg.department;
-        const phase = reg.phase || 'phase1';
+        const phase = reg.phase || '';
         
         if (phase === 'phase1' && dept && departmentSlots[dept] !== undefined) {
             departmentSlots[dept].filled++;
@@ -466,8 +441,11 @@ function computeDepartmentSlots() {
         }
     }
     
-    console.log('Department slots (Phase 1):', 
-        Object.entries(departmentSlots).map(([dept, data]) => `${dept}: ${data.filled}/${SLOTS_PER_DEPARTMENT}`));
+    // Count Phase 2 registrations
+    phase2RegistrationCount = registrationsData.filter(r => r.phase === 'phase2').length;
+    
+    console.log(`Phase 1 slots: ${registrationsData.filter(r => r.phase === 'phase1').length} total`);
+    console.log(`Phase 2 registrations: ${phase2RegistrationCount}`);
 }
 
 // ============================================
@@ -491,32 +469,43 @@ function renderSelectionCard() {
 function renderPhase1Card() {
     const dept = currentStudent.department;
     const deptData = departmentSlots[dept];
-    const remaining = deptData ? deptData.remaining : 0;
+    const remaining = deptData ? deptData.remaining : SLOTS_PER_DEPARTMENT;
     const filled = deptData ? deptData.filled : 0;
     const available = remaining > 0;
+    
     const isAlreadyRegistered = registrationsData.some(r =>
-        String(r.enrol).trim() === String(currentStudent.enrol).trim() && r.department
+        String(r.enrol).trim() === String(currentStudent.enrol).trim() &&
+        r.department &&
+        r.phase
     );
 
     phaseMessage.classList.remove('hidden');
     phaseMessageText.innerHTML = `
-        <strong>Phase 1:</strong> ${filled}/${SLOTS_PER_DEPARTMENT} slots filled in ${dept}. 
-        ${remaining > 0 ? `<span class="text-emerald-700 font-semibold">${remaining} slots remaining</span>` : '<span class="text-red-600 font-semibold">DEPARTMENT FULL</span>'}
+        <strong>Phase 1 - ${dept}:</strong> 
+        ${filled}/${SLOTS_PER_DEPARTMENT} slots filled. 
+        ${available ? 
+            `<span class="text-emerald-700 font-semibold">${remaining} slots remaining</span>` : 
+            '<span class="text-red-600 font-semibold">DEPARTMENT FULL</span>'}
     `;
 
     let cardHtml = '';
 
     if (isAlreadyRegistered) {
+        const reg = registrationsData.find(r => 
+            String(r.enrol).trim() === String(currentStudent.enrol).trim()
+        );
         cardHtml = `
             <div class="department-card disabled">
                 <h3 class="font-semibold text-gray-800 text-sm mb-2">${dept}</h3>
                 <div class="slot-badge ${!available ? 'slot-full' : 'bg-emerald-100 text-emerald-700'}">
                     ${remaining} slots left
                 </div>
-                <p class="text-xs text-gray-500 mt-2"><i class="fas fa-check-circle text-green-600 mr-1"></i> Already registered</p>
+                <p class="text-xs text-green-600 mt-2">
+                    <i class="fas fa-check-circle mr-1"></i> Already registered
+                    ${reg?.position ? `<span class="position-badge ml-1">#${reg.position}</span>` : ''}
+                </p>
             </div>
         `;
-        departmentSlotInfo.innerHTML = '';
         submitBtn.disabled = true;
         submitBtn.style.opacity = "0.6";
         submitBtn.style.cursor = "not-allowed";
@@ -528,12 +517,12 @@ function renderPhase1Card() {
                     <i class="fas fa-ban mr-1"></i> Full (${SLOTS_PER_DEPARTMENT}/${SLOTS_PER_DEPARTMENT})
                 </div>
                 <p class="text-xs text-red-500 mt-2">
-                    <i class="fas fa-clock mr-1"></i> Your department is full. 
-                    <br>Please wait for <strong>Phase 2 at 7:20 AM</strong> (no department limits).
+                    <i class="fas fa-clock mr-1"></i> Department is full.
+                    <br>Wait for <strong>Phase 2 at 7:20 AM</strong> (no limits).
                 </p>
             </div>
         `;
-        departmentSlotInfo.innerHTML = '<i class="fas fa-exclamation-triangle mr-1 text-red-500"></i> Department full! Phase 2 opens at 7:20 AM with no per-department limits.';
+        departmentSlotInfo.innerHTML = '<i class="fas fa-exclamation-triangle mr-1 text-red-500"></i> Your department is full! Phase 2 opens at 7:20 AM with no limits.';
         submitBtn.disabled = true;
         submitBtn.style.opacity = "0.6";
         submitBtn.style.cursor = "not-allowed";
@@ -544,7 +533,7 @@ function renderPhase1Card() {
                  data-department="${dept}">
                 <h3 class="font-semibold text-gray-800 text-sm mb-2">${dept}</h3>
                 <div class="slot-badge bg-emerald-100 text-emerald-700">
-                    <i class="fas fa-circle text-green-500 mr-1" style="font-size: 0.5rem;"></i>
+                    <i class="fas fa-circle text-green-500 mr-1" style="font-size: 0.4rem;"></i>
                     ${remaining} slots left
                 </div>
                 <p class="text-xs text-emerald-600 mt-2">
@@ -552,7 +541,7 @@ function renderPhase1Card() {
                 </p>
             </div>
         `;
-        departmentSlotInfo.innerHTML = `<i class="fas fa-info-circle mr-1"></i> ${remaining} slots remaining for ${dept}. Register now!`;
+        departmentSlotInfo.innerHTML = `<i class="fas fa-info-circle mr-1"></i> ${remaining} slots remaining for ${dept}.`;
         window._selectedDepartment = dept;
         submitBtn.disabled = false;
         submitBtn.style.opacity = "1";
@@ -565,7 +554,9 @@ function renderPhase1Card() {
 
 function renderPhase2Card() {
     const isAlreadyRegistered = registrationsData.some(r =>
-        String(r.enrol).trim() === String(currentStudent.enrol).trim() && r.department
+        String(r.enrol).trim() === String(currentStudent.enrol).trim() &&
+        r.department &&
+        r.phase
     );
 
     phaseMessage.classList.remove('hidden');
@@ -577,14 +568,20 @@ function renderPhase2Card() {
     let cardHtml = '';
 
     if (isAlreadyRegistered) {
+        const reg = registrationsData.find(r => 
+            String(r.enrol).trim() === String(currentStudent.enrol).trim()
+        );
         cardHtml = `
             <div class="global-slot-card disabled">
                 <span class="phase-indicator phase-2">Phase 2</span>
                 <h3 class="font-semibold text-gray-800 mb-2">Already Registered</h3>
-                <p class="text-sm text-gray-500"><i class="fas fa-check-circle text-green-600 mr-1"></i> You have already secured a slot.</p>
+                <p class="text-sm text-gray-500">
+                    <i class="fas fa-check-circle text-green-600 mr-1"></i> 
+                    You have already secured a slot.
+                </p>
+                ${reg?.position ? `<p class="text-xs mt-1"><span class="position-badge">Position #${reg.position}</span></p>` : ''}
             </div>
         `;
-        departmentSlotInfo.innerHTML = '';
         submitBtn.disabled = true;
         submitBtn.style.opacity = "0.6";
         submitBtn.style.cursor = "not-allowed";
@@ -603,7 +600,7 @@ function renderPhase2Card() {
                 <p class="text-xs text-gray-500 mt-1">Department: ${currentStudent.department}</p>
             </div>
         `;
-        departmentSlotInfo.innerHTML = '<i class="fas fa-info-circle mr-1 text-blue-600"></i> Phase 2: Open registration - No per-department limits. Register now!';
+        departmentSlotInfo.innerHTML = '<i class="fas fa-info-circle mr-1 text-blue-600"></i> Phase 2: Open registration - No limits. Register now!';
         window._selectedDepartment = currentStudent.department;
         submitBtn.disabled = false;
         submitBtn.style.opacity = "1";
@@ -628,7 +625,9 @@ window.selectDepartment = function(department) {
     }
 
     const alreadyRegistered = registrationsData.some(r =>
-        String(r.enrol).trim() === String(currentStudent.enrol).trim() && r.department
+        String(r.enrol).trim() === String(currentStudent.enrol).trim() &&
+        r.department &&
+        r.phase
     );
 
     if (alreadyRegistered) {
@@ -636,23 +635,17 @@ window.selectDepartment = function(department) {
         return;
     }
 
-    // Phase 1: Check department slots (6 per department limit applies)
+    // Phase 1: Check department slots
     if (currentPhase === 'phase1') {
         const remaining = departmentSlots[department] ? departmentSlots[department].remaining : 0;
         if (remaining <= 0) {
             showAlert(`Your department is full (${SLOTS_PER_DEPARTMENT}/${SLOTS_PER_DEPARTMENT}). Please wait for Phase 2 at 7:20 AM.`);
             return;
         }
-    }
-
-    // Phase 2: No limits - everyone can register
-    if (currentPhase === 'phase2') {
+        showAlert(`✅ Ready to register for ${department} (Phase 1 - ${remaining} slots remaining)`, false);
+    } else {
         showAlert(`✅ Ready to register for ${department} (Phase 2 - Open Registration)`, false);
-        return;
     }
-
-    window._selectedDepartment = department;
-    showAlert(`✅ Ready to register for ${department} (Phase 1 - ${departmentSlots[department].remaining} slots remaining)`, false);
 };
 
 // ============================================
@@ -691,7 +684,9 @@ async function submitRegistration() {
     }
 
     const alreadyRegistered = registrationsData.some(r =>
-        String(r.enrol).trim() === String(currentStudent.enrol).trim() && r.department
+        String(r.enrol).trim() === String(currentStudent.enrol).trim() &&
+        r.department &&
+        r.phase
     );
 
     if (alreadyRegistered) {
@@ -701,9 +696,7 @@ async function submitRegistration() {
 
     const dept = window._selectedDepartment || currentStudent.department;
 
-    // ============================================
-    // PHASE 1: Check 6 per department limit
-    // ============================================
+    // Phase 1: Check 6 per department limit
     if (currentPhase === 'phase1') {
         const deptData = departmentSlots[dept];
         if (!deptData || deptData.remaining <= 0) {
@@ -713,13 +706,15 @@ async function submitRegistration() {
         }
     }
 
-    // Phase 2: No limit check needed
-
     const originalBtnHtml = submitBtn.innerHTML;
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<div class="loading-spinner"></div> Submitting...';
 
     try {
+        // Create submission timestamp with seconds
+        const submissionTime = new Date();
+        const submissionTimeISO = submissionTime.toISOString();
+        
         const response = await fetch(APPS_SCRIPT_URL, {
             method: "POST",
             mode: "cors",
@@ -732,7 +727,7 @@ async function submitRegistration() {
                 department: dept,
                 name: currentStudent.name,
                 phase: currentPhase, // 'phase1' or 'phase2'
-                registrationTime: new Date().toISOString()
+                registrationTime: submissionTimeISO
             })
         });
 
@@ -745,50 +740,48 @@ async function submitRegistration() {
                 name: currentStudent.name,
                 department: dept,
                 phase: currentPhase,
-                submission_date: new Date().toISOString()
+                submission_date: submissionTimeISO,
+                position: result.position || 'N/A'
             });
-
-            // Update tracking
-            if (currentPhase === 'phase2') {
-                phase2RegistrationCount++;
-            }
 
             computeDepartmentSlots();
 
-            // Find user's position
-            const allSubmissions = registrationsData
-                .filter(r => r.department && r.submission_date)
-                .sort((a, b) => new Date(a.submission_date) - new Date(b.submission_date));
-            
-            const userPosition = allSubmissions.findIndex(r => 
-                String(r.enrol).trim() === String(currentStudent.enrol).trim()
-            ) + 1;
-
             const phaseLabel = currentPhase === 'phase2' ? 'Phase 2 (Open)' : 'Phase 1 (Department)';
-            showAlert(`✅ Success! Registered for ${dept} via ${phaseLabel}. Position: #${userPosition}`, false);
+            const position = result.position || 'N/A';
+            
+            showAlert(`✅ Success! Registered for ${dept} via ${phaseLabel}. Position: #${position}`, false);
 
             statusContainer.classList.remove("hidden");
             statusDisplay.innerHTML = `
-                <span class="status-badge status-submitted">
-                    <i class="fas fa-check-circle mr-1"></i> 
-                    Registered for ${dept} (${phaseLabel})<br>
-                    <small>Position: #${userPosition} of ${allSubmissions.length}</small><br>
-                    <small>Time: ${new Date().toLocaleString()}</small>
-                </span>
+                <div class="registration-details">
+                    <span class="status-badge status-submitted mb-2">
+                        <i class="fas fa-check-circle mr-1"></i> Registration Successful!
+                    </span>
+                    <div class="mt-2 text-sm">
+                        <div><strong>Phase:</strong> ${phaseLabel}</div>
+                        <div><strong>Department:</strong> ${dept}</div>
+                        <div>
+                            <strong>Position:</strong> 
+                            <span class="position-badge">#${position}</span>
+                        </div>
+                        <div><strong>Submission Time:</strong> ${submissionTime.toLocaleString()}</div>
+                    </div>
+                </div>
             `;
             selectionContainer.classList.add("hidden");
             submitBtn.disabled = true;
             submitBtn.style.opacity = "0.6";
             submitBtn.style.cursor = "not-allowed";
             
-            // Update the timer display
             updateTimer();
         } else {
             showAlert(`❌ Registration failed: ${result.error || "Unknown error"}`);
             await loadRegistrationsData();
-            analyzeRegistrations();
             computeDepartmentSlots();
-            renderSelectionCard();
+            if (currentStudent) {
+                checkExistingRegistration();
+                renderSelectionCard();
+            }
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalBtnHtml;
             submitBtn.style.opacity = "1";
@@ -834,3 +827,4 @@ document.addEventListener("keydown", function(e) {
 });
 
 console.log('%c🌟 PG Quota Portal - Phase 1: 6/dept | Phase 2: Unlimited 🌟', 'color: #059669; font-size: 16px; font-weight: bold;');
+console.log('%c📊 Student data loaded from Google Sheets CSV', 'color: #2563eb;');
