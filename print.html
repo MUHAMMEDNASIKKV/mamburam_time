@@ -1,656 +1,798 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-  <title>Mamburam Swalath � Admin Panel</title>
-  <!-- html2pdf library -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Mamburam Swalath · Admin Panel</title>
+    <!-- html2pdf library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js">
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    body {
-      background: #f4f7fc;
-      font-family: 'Segoe UI', Roboto, 'Helvetica Neue', system-ui, sans-serif;
-      padding: 2.5rem 1rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
-    }
+        body {
+            background: #f4f7fc;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', system-ui, sans-serif;
+            padding: 2.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+        }
 
-    .container {
-      max-width: 1000px;
-      width: 100%;
-      background: #ffffff;
-      border-radius: 24px;
-      box-shadow: 0 15px 35px rgba(11, 43, 74, 0.05);
-      padding: 2.5rem;
-      display: flex;
-      flex-direction: column;
-      gap: 2rem;
-    }
+        .container {
+            max-width: 1100px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(11, 43, 74, 0.05);
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
 
-    /* PERFECTED WEB PANEL HEADING */
-    .main-heading {
-      text-align: center;
-      margin-bottom: 0.5rem;
-    }
+        .main-heading {
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
 
-    .main-heading h1 {
-      font-size: 2.2rem;
-      font-weight: 800;
-      letter-spacing: 1.5px;
-      color: #0b2b4a;
-      text-transform: uppercase;
-      margin: 0;
-    }
+        .main-heading h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            color: #0b2b4a;
+            text-transform: uppercase;
+            margin: 0;
+        }
 
-    .main-heading p {
-      color: #64748b;
-      font-size: 0.95rem;
-      margin-top: 0.4rem;
-      font-weight: 500;
-    }
+        .main-heading p {
+            color: #64748b;
+            font-size: 0.95rem;
+            margin-top: 0.4rem;
+            font-weight: 500;
+        }
 
-    .info-banner {
-      background: #f0fdf4;
-      border: 1px solid #bbf7d0;
-      padding: 0.9rem 1.2rem;
-      border-radius: 12px;
-      color: #166534;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      font-size: 0.95rem;
-    }
+        .info-banner {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            padding: 0.9rem 1.2rem;
+            border-radius: 12px;
+            color: #166534;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.95rem;
+        }
 
-    /* FILTER PANEL STRUCTURE ARRANGEMENT */
-    .filter-panel {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 1.2rem;
-      background: #f8fafd;
-      padding: 1.2rem 1.5rem;
-      border-radius: 16px;
-      border: 1px solid #e2e8f0;
-    }
+        .filter-panel {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1.2rem;
+            background: #f8fafd;
+            padding: 1.2rem 1.5rem;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+        }
 
-    .filter-label {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-weight: 600;
-      color: #0b2b4a;
-      font-size: 0.95rem;
-    }
+        .filter-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            color: #0b2b4a;
+            font-size: 0.95rem;
+        }
 
-    .filter-controls {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-    }
+        .filter-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
 
-    .filter-input-group {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      background: #ffffff;
-      border-radius: 12px;
-      padding: 0.2rem 0.4rem 0.2rem 1rem;
-      border: 1px solid #cbd5e1;
-      transition: border-color 0.2s;
-    }
+        .filter-input-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 0.2rem 0.4rem 0.2rem 1rem;
+            border: 1px solid #cbd5e1;
+            transition: border-color 0.2s;
+        }
 
-    .filter-input-group:focus-within {
-      border-color: #0b2b4a;
-    }
+        .filter-input-group:focus-within {
+            border-color: #0b2b4a;
+        }
 
-    .filter-input-group input {
-      border: none;
-      padding: 0.5rem 0.2rem;
-      font-size: 0.95rem;
-      width: 80px;
-      outline: none;
-      background: transparent;
-      font-weight: 600;
-      text-align: center;
-      color: #0b2b4a;
-    }
+        .filter-input-group input {
+            border: none;
+            padding: 0.5rem 0.2rem;
+            font-size: 0.95rem;
+            width: 80px;
+            outline: none;
+            background: transparent;
+            font-weight: 600;
+            text-align: center;
+            color: #0b2b4a;
+        }
 
-    .filter-btn {
-      background: #0b2b4a;
-      border: none;
-      color: #ffffff;
-      font-weight: 600;
-      font-size: 0.95rem;
-      padding: 0.65rem 1.4rem;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: background-color 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
+        .filter-btn {
+            background: #0b2b4a;
+            border: none;
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 0.65rem 1.4rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
 
-    .filter-btn:hover {
-      background: #1e3b5a;
-    }
+        .filter-btn:hover {
+            background: #1e3b5a;
+        }
 
-    .reset-btn {
-      background: #ffffff;
-      border: 1px solid #cbd5e1;
-      color: #475569;
-      font-weight: 600;
-      font-size: 0.95rem;
-      padding: 0.65rem 1.4rem;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
+        .reset-btn {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            color: #475569;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 0.65rem 1.4rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
 
-    .reset-btn:hover {
-      background: #f8fafc;
-      color: #0b2b4a;
-    }
+        .reset-btn:hover {
+            background: #f8fafc;
+            color: #0b2b4a;
+        }
 
-    .count-badge {
-      background: #e0f2fe;
-      padding: 0.4rem 1rem;
-      border-radius: 10px;
-      font-weight: 600;
-      color: #0369a1;
-      font-size: 0.85rem;
-    }
+        .count-badge {
+            background: #e0f2fe;
+            padding: 0.4rem 1rem;
+            border-radius: 10px;
+            font-weight: 600;
+            color: #0369a1;
+            font-size: 0.85rem;
+        }
 
-    /* DASHBOARD DATA VISUALIZATION STYLING */
-    .stats-row {
-      display: flex;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-    }
-    
-    .stat-item {
-      background: #f1f5f9;
-      padding: 0.4rem 1rem;
-      border-radius: 10px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #475569;
-    }
+        .stats-row {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
 
-    .table-responsive {
-      overflow-x: auto;
-      border-radius: 12px;
-      border: 1px solid #e2e8f0;
-      background: #ffffff;
-    }
+        .stat-item {
+            background: #f1f5f9;
+            padding: 0.4rem 1rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #475569;
+        }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      white-space: nowrap;
-      font-size: 0.95rem;
-    }
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+        }
 
-    th {
-      background: #f8fafc;
-      color: #0b2b4a;
-      font-weight: 700;
-      padding: 1rem;
-      text-align: left;
-      border-bottom: 2px solid #e2e8f0;
-    }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            white-space: nowrap;
+            font-size: 0.95rem;
+        }
 
-    td {
-      padding: 0.9rem 1rem;
-      border-bottom: 1px solid #f1f5f9;
-      color: #334155;
-    }
+        th {
+            background: #f8fafc;
+            color: #0b2b4a;
+            font-weight: 700;
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 2px solid #e2e8f0;
+        }
 
-    tr:hover td {
-      background-color: #f8fafc;
-    }
+        td {
+            padding: 0.9rem 1rem;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+        }
 
-    .dept-badge {
-      background: #f0f4f8;
-      padding: 0.25rem 0.75rem;
-      border-radius: 8px;
-      font-weight: 600;
-      color: #0b2b4a;
-      font-size: 0.85rem;
-      display: inline-block;
-    }
+        tr:hover td {
+            background-color: #f8fafc;
+        }
 
-    .position-badge {
-      background: #dcfce7;
-      color: #166534;
-      padding: 0.2rem 0.6rem;
-      border-radius: 6px;
-      font-size: 0.8rem;
-      font-weight: 600;
-    }
+        .dept-badge {
+            background: #f0f4f8;
+            padding: 0.25rem 0.75rem;
+            border-radius: 8px;
+            font-weight: 600;
+            color: #0b2b4a;
+            font-size: 0.85rem;
+            display: inline-block;
+        }
 
-    .print-section {
-      display: flex;
-      justify-content: flex-end;
-    }
+        .position-badge {
+            background: #dcfce7;
+            color: #166534;
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
 
-    .print-btn {
-      background: #0b2b4a;
-      border: none;
-      color: #ffffff;
-      font-weight: 700;
-      padding: 0.9rem 2.2rem;
-      border-radius: 14px;
-      font-size: 1rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      box-shadow: 0 4px 12px rgba(11, 43, 74, 0.15);
-      transition: all 0.2s;
-    }
+        .print-section {
+            display: flex;
+            justify-content: flex-end;
+        }
 
-    .print-btn:hover {
-      background: #153e66;
-      transform: translateY(-1px);
-    }
+        .print-btn {
+            background: #0b2b4a;
+            border: none;
+            color: #ffffff;
+            font-weight: 700;
+            padding: 0.9rem 2.2rem;
+            border-radius: 14px;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 12px rgba(11, 43, 74, 0.15);
+            transition: all 0.2s;
+        }
 
-    .empty-message {
-      text-align: center;
-      padding: 3rem;
-      color: #94a3b8;
-      font-style: italic;
-    }
+        .print-btn:hover {
+            background: #153e66;
+            transform: translateY(-1px);
+        }
 
-    /* SCREEN ISOLATION LAYER FOR RELIABLE PDF RENDERING */
-    #pdf-render-zone {
-      display: block !important;
-      visibility: visible !important;
-      position: relative !important;
-      background: #ffffff !important;
-      margin: 0 auto;
-    }
+        .empty-message {
+            text-align: center;
+            padding: 3rem;
+            color: #94a3b8;
+            font-style: italic;
+        }
 
-    body.printing-mode .container {
-      display: none !important;
-    }
-    body:not(.printing-mode) #pdf-render-zone {
-      display: none !important;
-    }
-  </style>
+        #pdf-render-zone {
+            display: block !important;
+            visibility: visible !important;
+            position: relative !important;
+            background: #ffffff !important;
+            margin: 0 auto;
+        }
+
+        body.printing-mode .container {
+            display: none !important;
+        }
+        body:not(.printing-mode) #pdf-render-zone {
+            display: none !important;
+        }
+
+        .dept-order-hint {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 0.2rem;
+            font-weight: 400;
+        }
+
+        /* small responsive touch */
+        @media (max-width: 640px) {
+            .container {
+                padding: 1.2rem;
+            }
+            .filter-panel {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-controls {
+                justify-content: stretch;
+            }
+            .filter-input-group input {
+                width: 60px;
+            }
+            .filter-btn,
+            .reset-btn {
+                flex: 1;
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
 <body>
 
-  <!-- DASHBOARD UI CONTAINER -->
-  <div class="container">
-    <div class="main-heading">
-      <h1>Mamburam Swalath</h1>
-      <p>Registration Management &amp; Print Panel</p>
-    </div>
-
-    <div class="info-banner">
-      <span></span> <strong>Showing only registered students</strong> (with filled phase, submission_date &amp; position)
-    </div>
-
-    <div class="filter-panel">
-      <div class="filter-label">
-        <span></span> Filter by count (from registered)
-      </div>
-      <div class="filter-controls">
-        <div class="filter-input-group">
-          <input type="number" id="studentCountInput" placeholder="100" min="1" value="100">
+    <!-- DASHBOARD UI CONTAINER -->
+    <div class="container">
+        <div class="main-heading">
+            <h1>Mamburam Swalath</h1>
+            <p>Registration Management · Time‑Based Selection &amp; Department‑Sorted Print</p>
         </div>
-        <button class="filter-btn" id="applyFilterBtn">
-          <span></span> Apply Filter
-        </button>
-        <button class="reset-btn" id="resetFilterBtn">
-          Show All
-        </button>
-        <span class="count-badge" id="displayCountBadge">All registered</span>
-      </div>
-    </div>
 
-    <div class="stats-row" id="statsRow">
-      <span class="stat-item">Sheet Records: <span id="totalInSheet">0</span></span>
-      <span class="stat-item">Registered Size: <span id="totalRegistered">0</span></span>
-    </div>
+        <div class="info-banner">
+            <span>📋</span> <strong>Showing only registered students</strong> (phase, submission_date &amp; position filled)
+            — sorted by <strong>submission date</strong> (earliest first) then by <strong>department order</strong>.
+        </div>
 
-    <div class="table-responsive">
-      <table id="studentTable">
-        <thead>
-          <tr>
-            <th>Sl.No</th>
-            <th>Enrl No</th>
-            <th>Name</th>
-            <th>Department</th>
-            <th>Position</th>
-          </tr>
-        </thead>
-        <tbody id="tableBody">
-          <tr><td colspan="5" class="empty-message">Loading system data stream...</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="print-section">
-      <button class="print-btn" id="printPDFBtn">
-        <span></span> Download B&amp;W Print PDF
-      </button>
-    </div>
-  </div>
-
-  <!-- TARGET ENGINE LIVE INJECT FOR GENERATING CONTEXT -->
-  <div id="pdf-render-zone"></div>
-
-  <script>
-    (function() {
-      const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTVGIPl0D_8tsJi38WRpOJrme6f-6EITTlKsepIAQj9jDqpAlG8AaeMjtsmUMFghwwRAeigIPlgN8Ru/pub?gid=0&single=true&output=csv";
-
-      let allSheetData = []; 
-      let registeredStudents = []; 
-      let filteredStudents = []; 
-
-      const tableBody = document.getElementById('tableBody');
-      const studentCountInput = document.getElementById('studentCountInput');
-      const applyFilterBtn = document.getElementById('applyFilterBtn');
-      const resetFilterBtn = document.getElementById('resetFilterBtn');
-      const displayCountBadge = document.getElementById('displayCountBadge');
-      const printPDFBtn = document.getElementById('printPDFBtn');
-      const totalInSheetEl = document.getElementById('totalInSheet');
-      const totalRegisteredEl = document.getElementById('totalRegistered');
-      const pdfRenderZone = document.getElementById('pdf-render-zone');
-
-      function isFilled(val) {
-        if (val === undefined || val === null) return false;
-        const str = String(val).trim();
-        return str !== '' && str.toLowerCase() !== 'null' && str.toLowerCase() !== 'undefined';
-      }
-
-      function parseCSV(csvText) {
-        const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
-        if (lines.length === 0) return [];
-
-        const cleanSplit = (row) => {
-          let res = [];
-          let current = '';
-          let inQuotes = false;
-          for (let i = 0; i < row.length; i++) {
-            let char = row[i];
-            if (char === '"') { inQuotes = !inQuotes; }
-            else if (char === ',' && !inQuotes) { res.push(current.trim()); current = ''; }
-            else { current += char; }
-          }
-          res.push(current.trim());
-          return res;
-        };
-
-        const headers = cleanSplit(lines[0]).map(h => h.toLowerCase());
-
-        function findCol(keywords) {
-          for (let kw of keywords) {
-            const idx = headers.findIndex(h => h.includes(kw));
-            if (idx !== -1) return idx;
-          }
-          return -1;
-        }
-
-        const slIdx = findCol(['sl', 'no']) !== -1 ? findCol(['sl', 'no']) : findCol(['sl:no']);
-        const enrlIdx = findCol(['enrl', 'roll']);
-        const nameIdx = findCol(['name']);
-        const deptIdx = findCol(['department', 'dept']);
-        const phaseIdx = findCol(['phase']);
-        const subDateIdx = findCol(['submission', 'date']);
-        const positionIdx = findCol(['position']);
-
-        const students = [];
-        for (let i = 1; i < lines.length; i++) {
-          const cols = cleanSplit(lines[i]);
-          if (cols.length < 4) continue;
-
-          const getVal = (idx) => (idx !== -1 && idx < cols.length) ? cols[idx] : '';
-
-          const sl = getVal(slIdx);
-          const enrl = getVal(enrlIdx);
-          const name = getVal(nameIdx);
-          const department = getVal(deptIdx);
-          const phase = getVal(phaseIdx);
-          const submissionDate = getVal(subDateIdx);
-          const position = getVal(positionIdx);
-
-          if (!name || !department) continue;
-
-          students.push({
-            sl, enrl, name, department, phase, submissionDate, position, originalIndex: i,
-            isRegistered: isFilled(phase) && isFilled(submissionDate) && isFilled(position)
-          });
-        }
-        return students;
-      }
-
-      function sortByDeptAndPosition(arr) {
-        return [...arr].sort((a, b) => {
-          const deptCompare = a.department.localeCompare(b.department, 'en', { sensitivity: 'base' });
-          if (deptCompare !== 0) return deptCompare;
-
-          const posA = parseInt(a.position) || 0;
-          const posB = parseInt(b.position) || 0;
-          if (posA !== posB) return posA - posB;
-
-          return a.originalIndex - b.originalIndex;
-        });
-      }
-
-      function applyFilterAndSort(limit = null) {
-        let base = [...registeredStudents];
-
-        if (limit !== null && !isNaN(limit) && limit > 0) {
-          base = base.slice(0, Math.min(limit, base.length));
-        }
-
-        filteredStudents = sortByDeptAndPosition(base);
-        renderTable(filteredStudents);
-        updateBadge(filteredStudents.length, limit);
-      }
-
-      function renderTable(students) {
-        if (!students || students.length === 0) {
-          tableBody.innerHTML = `<tr><td colspan="5" class="empty-message">No records found.</td></tr>`;
-          return;
-        }
-
-        let html = '';
-        students.forEach((student, idx) => {
-          html += `<tr>
-            <td>${escapeHTML(student.sl) || (idx + 1)}</td>
-            <td>${escapeHTML(student.enrl)}</td>
-            <td><strong>${escapeHTML(student.name)}</strong></td>
-            <td><span class="dept-badge">${escapeHTML(student.department)}</span></td>
-            <td><span class="position-badge">${escapeHTML(student.position) || '-'}</span></td>
-          </tr>`;
-        });
-        tableBody.innerHTML = html;
-      }
-
-      function escapeHTML(str) {
-        return String(str).replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m] || m));
-      }
-
-      function updateBadge(count, limit) {
-        if (limit && limit > 0) {
-          displayCountBadge.textContent = `Filtered to first ${count}`;
-        } else {
-          displayCountBadge.textContent = `All ${count} registered`;
-        }
-      }
-
-      function updateStats() {
-        totalInSheetEl.textContent = allSheetData.length;
-        totalRegisteredEl.textContent = registeredStudents.length;
-      }
-
-      async function loadData() {
-        try {
-          tableBody.innerHTML = `<tr><td colspan="5" class="empty-message">Fetching database rows...</td></tr>`;
-          const response = await fetch(CSV_URL);
-          if (!response.ok) throw new Error(`HTTP ${response.status}`);
-          const csvText = await response.text();
-
-          allSheetData = parseCSV(csvText);
-          registeredStudents = allSheetData.filter(s => s.isRegistered === true);
-
-          registeredStudents.sort((a, b) => {
-            const posA = parseInt(a.position) || 0;
-            const posB = parseInt(b.position) || 0;
-            if (posA !== posB) return posA - posB;
-            return a.originalIndex - b.originalIndex;
-          });
-
-          updateStats();
-
-          if (registeredStudents.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="5" class="empty-message">No registered students found.</td></tr>`;
-            filteredStudents = [];
-            displayCountBadge.textContent = '0 records';
-            return;
-          }
-
-          applyFilterAndSort(null);
-          studentCountInput.value = 100;
-        } catch (error) {
-          console.error(error);
-          tableBody.innerHTML = `<tr><td colspan="5" class="empty-message"> Data stream connection failed.</td></tr>`;
-        }
-      }
-
-      applyFilterBtn.addEventListener('click', () => {
-        const raw = studentCountInput.value.trim();
-        const limit = parseInt(raw, 10);
-        if (raw === '' || isNaN(limit) || limit < 1) {
-          alert('Please enter a valid positive limit.');
-          return;
-        }
-        applyFilterAndSort(limit);
-      });
-
-      resetFilterBtn.addEventListener('click', () => {
-        studentCountInput.value = 100;
-        applyFilterAndSort(null);
-      });
-
-      // PDF GENERATOR WITH OPTIMIZED LIGHT CREAM HEADERS
-      function generatePDF() {
-        if (!filteredStudents || filteredStudents.length === 0) {
-          alert('No printable data currently active.');
-          return;
-        }
-
-        const today = new Date();
-        const dateStr = `${String(today.getDate()).padStart(2, '0')}-${String(today.getMonth() + 1).padStart(2, '0')}-${today.getFullYear()}`;
-
-        const PER_PAGE = 20;
-        const totalStudents = filteredStudents.length;
-        const totalPages = Math.ceil(totalStudents / PER_PAGE);
-
-        let pagesHTML = '';
-        for (let page = 0; page < totalPages; page++) {
-          const start = page * PER_PAGE;
-          const end = Math.min(start + PER_PAGE, totalStudents);
-          const pageStudents = filteredStudents.slice(start, end);
-
-          let rowsHTML = '';
-          pageStudents.forEach((student, idx) => {
-            const globalIdx = start + idx + 1;
-            rowsHTML += `
-              <tr style="border-bottom: 1px solid #d1d5db;">
-                <td style="padding: 11px 12px; font-size: 13.5px; text-align: left; color: #000000;">${globalIdx}</td>
-                <td style="padding: 11px 12px; font-size: 13.5px; text-align: left; color: #000000;">${escapeHTML(student.enrl)}</td>
-                <td style="padding: 11px 12px; font-size: 13.5px; text-align: left; font-weight: bold; color: #000000;">${escapeHTML(student.name)}</td>
-                <td style="padding: 11px 12px; font-size: 13.5px; text-align: left; color: #000000;">${escapeHTML(student.department)}</td>
-              </tr>`;
-          });
-
-          const pageBreakStyle = (page < totalPages - 1) ? 'page-break-after: always !important;' : '';
-
-          pagesHTML += `
-            <div style="padding: 45px 50px; width: 210mm; background: #ffffff; color: #000000; font-family: Arial, sans-serif; box-sizing: border-box; ${pageBreakStyle}">
-              
-              <!-- PDF HEADER STYLE WITH SPECIFIED STRUCTURE -->
-              <div style="text-align: center; border-bottom: 2px solid #000000; padding-bottom: 12px; margin-bottom: 25px;">
-                <h1 style="font-size: 24px; font-weight: bold; margin: 0; letter-spacing: 2px; color: #000000;">MAMBURAM SWALATH</h1>
-                <p style="font-size: 14px; margin: 6px 0 0; font-weight: bold; color: #000000;">(${dateStr})</p>
-              </div>
-              
-              <!-- DATA DATA TABLE GRID WITH TOUCHED CREAM HEADER -->
-              <table style="width: 100%; border-collapse: collapse; border: 1px solid #cbd5e1;">
-                <thead>
-                  <tr style="background-color: #FAF6EE !important; border-bottom: 2px solid #000000;">
-                    <th style="padding: 11px 12px; text-align: left; font-weight: bold; font-size: 13px; color: #000000; width: 12%;">Sl.No</th>
-                    <th style="padding: 11px 12px; text-align: left; font-weight: bold; font-size: 13px; color: #000000; width: 20%;">Enrl No</th>
-                    <th style="padding: 11px 12px; text-align: left; font-weight: bold; font-size: 13px; color: #000000; width: 43%;">Name</th>
-                    <th style="padding: 11px 12px; text-align: left; font-weight: bold; font-size: 13px; color: #000000; width: 25%;">Department</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${rowsHTML}
-                </tbody>
-              </table>
-
-              <!-- RUNNING SYSTEM BOUND FOOTERS -->
-              <div style="margin-top: 30px; border-top: 1px solid #000000; padding-top: 10px; display: flex; justify-content: space-between; font-size: 11.5px; font-weight: bold; color: #475569;">
-                <div>Students on Page: ${pageStudents.length} / Total Active: ${totalStudents}</div>
-                <div>Page ${page + 1} of ${totalPages}</div>
-              </div>
+        <div class="filter-panel">
+            <div class="filter-label">
+                <span>🎯</span> Select first <strong>N</strong> submitted students
             </div>
-          `;
-        }
+            <div class="filter-controls">
+                <div class="filter-input-group">
+                    <input type="number" id="studentCountInput" placeholder="100" min="1" value="100">
+                </div>
+                <button class="filter-btn" id="applyFilterBtn">
+                    <span>⏳</span> Apply
+                </button>
+                <button class="reset-btn" id="resetFilterBtn">
+                    Show All
+                </button>
+                <span class="count-badge" id="displayCountBadge">All registered</span>
+            </div>
+        </div>
 
-        pdfRenderZone.innerHTML = pagesHTML;
-        document.body.classList.add('printing-mode');
+        <div class="stats-row" id="statsRow">
+            <span class="stat-item">Sheet Records: <span id="totalInSheet">0</span></span>
+            <span class="stat-item">Registered: <span id="totalRegistered">0</span></span>
+            <span class="stat-item" style="background:#e6f0fa;">Selected: <span id="selectedCount">0</span></span>
+        </div>
 
-        const opt = {
-          margin: 0,
-          filename: `MamburamSwalath_Registered_${dateStr}.pdf`,
-          image: { type: 'jpeg', quality: 1.0 },
-          html2canvas: {
-            scale: 2.5,
-            logging: false,
-            useCORS: true,
-            scrollX: 0,
-            scrollY: 0
-          },
-          jsPDF: {
-            unit: 'mm',
-            format: 'a4',
-            orientation: 'portrait'
-          },
-          pagebreak: { mode: ['css', 'legacy'] }
-        };
+        <div class="table-responsive">
+            <table id="studentTable">
+                <thead>
+                    <tr>
+                        <th>Sl.No</th>
+                        <th>Enrl No</th>
+                        <th>Name</th>
+                        <th>Department</th>
+                        <th>Position</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr><td colspan="5" class="empty-message">Loading system data stream...</td></tr>
+                </tbody>
+            </table>
+        </div>
 
-        html2pdf().set(opt).from(pdfRenderZone).save().then(() => {
-          document.body.classList.remove('printing-mode');
-          pdfRenderZone.innerHTML = '';
-        }).catch(err => {
-          console.error(err);
-          document.body.classList.remove('printing-mode');
-          pdfRenderZone.innerHTML = '';
-          alert('PDF generation execution failed.');
-        });
-      }
+        <div class="print-section">
+            <button class="print-btn" id="printPDFBtn">
+                <span>📄</span> Download B&amp;W Print PDF
+            </button>
+        </div>
+    </div>
 
-      printPDFBtn.addEventListener('click', generatePDF);
-      loadData();
-    })();
-  </script>
+    <!-- PDF RENDER ZONE (hidden unless printing) -->
+    <div id="pdf-render-zone"></div>
+
+    <script>
+        (function() {
+            // ─── CONFIG ──────────────────────────────────────────────────────────────
+            const CSV_URL =
+                "https://docs.google.com/spreadsheets/d/e/2PACX-1vTVGIPl0D_8tsJi38WRpOJrme6f-6EITTlKsepIAQj9jDqpAlG8AaeMjtsmUMFghwwRAeigIPlgN8Ru/pub?gid=0&single=true&output=csv";
+
+            // ─── CUSTOM DEPARTMENT ORDER (as requested) ────────────────────────────
+            const DEPT_ORDER = [
+                "Quran and Related Sciences",
+                "Hadith and Related Sciences",
+                "Fiqh and Usul al-Fiqh",
+                "Islamic Economics and Finance",
+                "Aqeeda and Philosophy",
+                "Study of Religion",
+                "Civilizational Studies",
+                "Community Leadership and Social Change",
+                "Societal Development",
+                "Arabic Language and Literature",
+                "Translation and Comparative Literature",
+                "Governance and Public Administration",
+                "Law, Justice and Governance",
+                "Educational leadership and management",
+                "Media and Communication"
+            ];
+
+            // Build a fast lookup map: department → rank (0 = highest)
+            const deptRank = new Map();
+            DEPT_ORDER.forEach((dept, idx) => {
+                deptRank.set(dept.toLowerCase().trim(), idx);
+            });
+
+            // Helper: get department rank, fallback to a large number for unknown depts
+            function getDeptRank(dept) {
+                const key = String(dept).toLowerCase().trim();
+                return deptRank.has(key) ? deptRank.get(key) : 999;
+            }
+
+            // ─── STATE ──────────────────────────────────────────────────────────────
+            let allSheetData = [];
+            let registeredStudents = []; // all registered (phase + submission_date + position filled)
+            let filteredStudents = []; // currently displayed (after count filter + dept sort)
+
+            // DOM refs
+            const tableBody = document.getElementById('tableBody');
+            const studentCountInput = document.getElementById('studentCountInput');
+            const applyFilterBtn = document.getElementById('applyFilterBtn');
+            const resetFilterBtn = document.getElementById('resetFilterBtn');
+            const displayCountBadge = document.getElementById('displayCountBadge');
+            const printPDFBtn = document.getElementById('printPDFBtn');
+            const totalInSheetEl = document.getElementById('totalInSheet');
+            const totalRegisteredEl = document.getElementById('totalRegistered');
+            const selectedCountEl = document.getElementById('selectedCount');
+            const pdfRenderZone = document.getElementById('pdf-render-zone');
+
+            // ─── HELPERS ─────────────────────────────────────────────────────────────
+            function isFilled(val) {
+                if (val === undefined || val === null) return false;
+                const str = String(val).trim();
+                return str !== '' && str.toLowerCase() !== 'null' && str.toLowerCase() !== 'undefined';
+            }
+
+            function escapeHTML(str) {
+                return String(str).replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' } [m] ||
+                m));
+            }
+
+            // Parse a date string — try multiple formats
+            function parseDate(str) {
+                if (!str) return null;
+                const s = String(str).trim();
+                // Try DD/MM/YYYY, DD-MM-YYYY, DD.MM.YYYY
+                let m = s.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
+                if (m) {
+                    // assume DD/MM/YYYY
+                    return new Date(parseInt(m[3]), parseInt(m[2]) - 1, parseInt(m[1]));
+                }
+                // Try YYYY-MM-DD
+                m = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+                if (m) {
+                    return new Date(parseInt(m[1]), parseInt(m[2]) - 1, parseInt(m[3]));
+                }
+                // Try native parsing
+                const d = new Date(s);
+                if (!isNaN(d.getTime())) return d;
+                return null;
+            }
+
+            // ─── CSV PARSER ──────────────────────────────────────────────────────────
+            function parseCSV(csvText) {
+                const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
+                if (lines.length === 0) return [];
+
+                const cleanSplit = (row) => {
+                    let res = [];
+                    let current = '';
+                    let inQuotes = false;
+                    for (let i = 0; i < row.length; i++) {
+                        let char = row[i];
+                        if (char === '"') { inQuotes = !inQuotes; } else if (char === ',' && !inQuotes) {
+                            res.push(current.trim());
+                            current = '';
+                        } else {
+                            current += char;
+                        }
+                    }
+                    res.push(current.trim());
+                    return res;
+                };
+
+                const headers = cleanSplit(lines[0]).map(h => h.toLowerCase());
+
+                function findCol(keywords) {
+                    for (let kw of keywords) {
+                        const idx = headers.findIndex(h => h.includes(kw));
+                        if (idx !== -1) return idx;
+                    }
+                    return -1;
+                }
+
+                const slIdx = (findCol(['sl', 'no']) !== -1) ? findCol(['sl', 'no']) : findCol(['sl:no']);
+                const enrlIdx = findCol(['enrl', 'roll']);
+                const nameIdx = findCol(['name']);
+                const deptIdx = findCol(['department', 'dept']);
+                const phaseIdx = findCol(['phase']);
+                const subDateIdx = findCol(['submission', 'date']);
+                const positionIdx = findCol(['position']);
+
+                const students = [];
+                for (let i = 1; i < lines.length; i++) {
+                    const cols = cleanSplit(lines[i]);
+                    if (cols.length < 4) continue;
+
+                    const getVal = (idx) => (idx !== -1 && idx < cols.length) ? cols[idx] : '';
+
+                    const sl = getVal(slIdx);
+                    const enrl = getVal(enrlIdx);
+                    const name = getVal(nameIdx);
+                    const department = getVal(deptIdx);
+                    const phase = getVal(phaseIdx);
+                    const submissionDate = getVal(subDateIdx);
+                    const position = getVal(positionIdx);
+
+                    if (!name || !department) continue;
+
+                    students.push({
+                        sl,
+                        enrl,
+                        name,
+                        department,
+                        phase,
+                        submissionDate,
+                        position,
+                        originalIndex: i,
+                        isRegistered: isFilled(phase) && isFilled(submissionDate) && isFilled(position)
+                    });
+                }
+                return students;
+            }
+
+            // ─── SORTING ENGINE ──────────────────────────────────────────────────────
+
+            // Step 1: sort registered students by submission date (ascending = earliest first)
+            function sortBySubmissionDateAsc(arr) {
+                return [...arr].sort((a, b) => {
+                    const dateA = parseDate(a.submissionDate);
+                    const dateB = parseDate(b.submissionDate);
+                    // if both valid, compare
+                    if (dateA && dateB) return dateA - dateB;
+                    // if one valid, put it first
+                    if (dateA) return -1;
+                    if (dateB) return 1;
+                    // fallback: string compare
+                    return String(a.submissionDate).localeCompare(String(b.submissionDate));
+                });
+            }
+
+            // Step 2: sort by department order, then by submission date within each dept
+            function sortByDepartmentOrder(arr) {
+                return [...arr].sort((a, b) => {
+                    const rankA = getDeptRank(a.department);
+                    const rankB = getDeptRank(b.department);
+                    if (rankA !== rankB) return rankA - rankB;
+
+                    // same department → sort by submission date (earliest first)
+                    const dateA = parseDate(a.submissionDate);
+                    const dateB = parseDate(b.submissionDate);
+                    if (dateA && dateB) return dateA - dateB;
+                    if (dateA) return -1;
+                    if (dateB) return 1;
+
+                    // fallback: by position, then original index
+                    const posA = parseInt(a.position) || 0;
+                    const posB = parseInt(b.position) || 0;
+                    if (posA !== posB) return posA - posB;
+                    return a.originalIndex - b.originalIndex;
+                });
+            }
+
+            // ─── APPLY FILTER + SORT ────────────────────────────────────────────────
+
+            function applyFilterAndSort(limit = null) {
+                // 1. Start with all registered
+                let base = [...registeredStudents];
+
+                // 2. Sort by submission date (ascending) → "first submitted"
+                const sortedByDate = sortBySubmissionDateAsc(base);
+
+                // 3. Apply count filter (take first N)
+                if (limit !== null && !isNaN(limit) && limit > 0) {
+                    sortedByDate.splice(limit); // keep only first `limit` items
+                }
+
+                // 4. Sort the filtered list by department order (with submission date as secondary)
+                filteredStudents = sortByDepartmentOrder(sortedByDate);
+
+                // 5. Render
+                renderTable(filteredStudents);
+                updateBadge(filteredStudents.length, limit);
+                selectedCountEl.textContent = filteredStudents.length;
+            }
+
+            // ─── RENDER TABLE ────────────────────────────────────────────────────────
+
+            function renderTable(students) {
+                if (!students || students.length === 0) {
+                    tableBody.innerHTML =
+                    `<tr><td colspan="5" class="empty-message">No registered students match the filter.</td></tr>`;
+                    return;
+                }
+
+                let html = '';
+                students.forEach((student, idx) => {
+                    html += `<tr>
+                        <td>${escapeHTML(student.sl) || (idx + 1)}</td>
+                        <td>${escapeHTML(student.enrl)}</td>
+                        <td><strong>${escapeHTML(student.name)}</strong></td>
+                        <td><span class="dept-badge">${escapeHTML(student.department)}</span></td>
+                        <td><span class="position-badge">${escapeHTML(student.position) || '-'}</span></td>
+                    </tr>`;
+                });
+                tableBody.innerHTML = html;
+            }
+
+            function updateBadge(count, limit) {
+                if (limit && limit > 0) {
+                    displayCountBadge.textContent = `First ${count} submitted`;
+                } else {
+                    displayCountBadge.textContent = `All ${count} registered`;
+                }
+            }
+
+            function updateStats() {
+                totalInSheetEl.textContent = allSheetData.length;
+                totalRegisteredEl.textContent = registeredStudents.length;
+                selectedCountEl.textContent = filteredStudents.length;
+            }
+
+            // ─── LOAD DATA ───────────────────────────────────────────────────────────
+
+            async function loadData() {
+                try {
+                    tableBody.innerHTML = `<tr><td colspan="5" class="empty-message">⏳ Fetching database rows...</td></tr>`;
+                    const response = await fetch(CSV_URL);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const csvText = await response.text();
+
+                    allSheetData = parseCSV(csvText);
+                    registeredStudents = allSheetData.filter(s => s.isRegistered === true);
+
+                    // Sort registered by submission date (ascending) as baseline
+                    registeredStudents = sortBySubmissionDateAsc(registeredStudents);
+
+                    updateStats();
+
+                    if (registeredStudents.length === 0) {
+                        tableBody.innerHTML =
+                            `<tr><td colspan="5" class="empty-message">No registered students found.</td></tr>`;
+                        filteredStudents = [];
+                        displayCountBadge.textContent = '0 records';
+                        return;
+                    }
+
+                    // Default: show all (no limit)
+                    applyFilterAndSort(null);
+                    studentCountInput.value = 100;
+                } catch (error) {
+                    console.error(error);
+                    tableBody.innerHTML = `<tr><td colspan="5" class="empty-message">⚠️ Data stream connection failed.</td></tr>`;
+                }
+            }
+
+            // ─── EVENT LISTENERS ────────────────────────────────────────────────────
+
+            applyFilterBtn.addEventListener('click', () => {
+                const raw = studentCountInput.value.trim();
+                const limit = parseInt(raw, 10);
+                if (raw === '' || isNaN(limit) || limit < 1) {
+                    alert('Please enter a valid positive number.');
+                    return;
+                }
+                applyFilterAndSort(limit);
+            });
+
+            resetFilterBtn.addEventListener('click', () => {
+                studentCountInput.value = 100;
+                applyFilterAndSort(null);
+            });
+
+            // ─── PDF GENERATOR ──────────────────────────────────────────────────────
+
+            function generatePDF() {
+                if (!filteredStudents || filteredStudents.length === 0) {
+                    alert('No printable data currently active.');
+                    return;
+                }
+
+                const today = new Date();
+                const dateStr =
+                    `${String(today.getDate()).padStart(2, '0')}-${String(today.getMonth() + 1).padStart(2, '0')}-${today.getFullYear()}`;
+
+                const PER_PAGE = 20;
+                const totalStudents = filteredStudents.length;
+                const totalPages = Math.ceil(totalStudents / PER_PAGE);
+
+                let pagesHTML = '';
+                for (let page = 0; page < totalPages; page++) {
+                    const start = page * PER_PAGE;
+                    const end = Math.min(start + PER_PAGE, totalStudents);
+                    const pageStudents = filteredStudents.slice(start, end);
+
+                    let rowsHTML = '';
+                    pageStudents.forEach((student, idx) => {
+                        const globalIdx = start + idx + 1;
+                        rowsHTML += `
+                            <tr style="border-bottom: 1px solid #d1d5db;">
+                                <td style="padding: 11px 12px; font-size: 13.5px; text-align: left; color: #000000;">${globalIdx}</td>
+                                <td style="padding: 11px 12px; font-size: 13.5px; text-align: left; color: #000000;">${escapeHTML(student.enrl)}</td>
+                                <td style="padding: 11px 12px; font-size: 13.5px; text-align: left; font-weight: bold; color: #000000;">${escapeHTML(student.name)}</td>
+                                <td style="padding: 11px 12px; font-size: 13.5px; text-align: left; color: #000000;">${escapeHTML(student.department)}</td>
+                            </tr>`;
+                    });
+
+                    const pageBreakStyle = (page < totalPages - 1) ? 'page-break-after: always !important;' : '';
+
+                    pagesHTML += `
+                        <div style="padding: 45px 50px; width: 210mm; background: #ffffff; color: #000000; font-family: Arial, sans-serif; box-sizing: border-box; ${pageBreakStyle}">
+
+                            <div style="text-align: center; border-bottom: 2px solid #000000; padding-bottom: 12px; margin-bottom: 25px;">
+                                <h1 style="font-size: 24px; font-weight: bold; margin: 0; letter-spacing: 2px; color: #000000;">MAMBURAM SWALATH</h1>
+                                <p style="font-size: 14px; margin: 6px 0 0; font-weight: bold; color: #000000;">(${dateStr}) · First ${totalStudents} submitted · Sorted by Department</p>
+                            </div>
+
+                            <table style="width: 100%; border-collapse: collapse; border: 1px solid #cbd5e1;">
+                                <thead>
+                                    <tr style="background-color: #FAF6EE !important; border-bottom: 2px solid #000000;">
+                                        <th style="padding: 11px 12px; text-align: left; font-weight: bold; font-size: 13px; color: #000000; width: 12%;">Sl.No</th>
+                                        <th style="padding: 11px 12px; text-align: left; font-weight: bold; font-size: 13px; color: #000000; width: 20%;">Enrl No</th>
+                                        <th style="padding: 11px 12px; text-align: left; font-weight: bold; font-size: 13px; color: #000000; width: 43%;">Name</th>
+                                        <th style="padding: 11px 12px; text-align: left; font-weight: bold; font-size: 13px; color: #000000; width: 25%;">Department</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${rowsHTML}
+                                </tbody>
+                            </table>
+
+                            <div style="margin-top: 30px; border-top: 1px solid #000000; padding-top: 10px; display: flex; justify-content: space-between; font-size: 11.5px; font-weight: bold; color: #475569;">
+                                <div>Students on Page: ${pageStudents.length} / Total: ${totalStudents}</div>
+                                <div>Page ${page + 1} of ${totalPages}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                pdfRenderZone.innerHTML = pagesHTML;
+                document.body.classList.add('printing-mode');
+
+                const opt = {
+                    margin: 0,
+                    filename: `MamburamSwalath_First${totalStudents}_${dateStr}.pdf`,
+                    image: { type: 'jpeg', quality: 1.0 },
+                    html2canvas: {
+                        scale: 2.5,
+                        logging: false,
+                        useCORS: true,
+                        scrollX: 0,
+                        scrollY: 0
+                    },
+                    jsPDF: {
+                        unit: 'mm',
+                        format: 'a4',
+                        orientation: 'portrait'
+                    },
+                    pagebreak: { mode: ['css', 'legacy'] }
+                };
+
+                html2pdf().set(opt).from(pdfRenderZone).save().then(() => {
+                    document.body.classList.remove('printing-mode');
+                    pdfRenderZone.innerHTML = '';
+                }).catch(err => {
+                    console.error(err);
+                    document.body.classList.remove('printing-mode');
+                    pdfRenderZone.innerHTML = '';
+                    alert('PDF generation failed.');
+                });
+            }
+
+            printPDFBtn.addEventListener('click', generatePDF);
+
+            // ─── BOOT ────────────────────────────────────────────────────────────────
+            loadData();
+        })();
+    </script>
 </body>
 </html>
