@@ -161,15 +161,15 @@ function getCurrentPhase() {
     const istDay = (utcMinutes + istOffset >= 1440) ? (day + 1) % 7 : day;
 
     // Thursday = 4
-    const isThursday = (istDay === 1);
+    const isThursday = (istDay === 4);
 
     // Phase 1: 6:20 AM to 7:20 AM (380 to 440 minutes)
-    const phase1Start = 19 * 60 + 57; // 380 (6:20 AM)
-    const phase1End = 19 * 60 + 58;   // 440 (7:20 AM)
+    const phase1Start = 6 * 60 + 20; // 380 (6:20 AM)
+    const phase1End = 7 * 60 + 20;   // 440 (7:20 AM)
 
     // Phase 2: 7:20 AM to 8:45 AM (440 to 525 minutes)
-    const phase2Start = 19 * 60 + 58;  // 440 (7:20 AM)
-    const phase2End = 20 * 60 + 01;    // 525 (8:45 AM)
+    const phase2Start = 7 * 60 + 20;  // 440 (7:20 AM)
+    const phase2End = 8 * 60 + 45;    // 525 (8:45 AM)
 
     if (!isThursday) return 'closed';
     if (istMinutes >= phase1Start && istMinutes < phase1End) return 'phase1';
