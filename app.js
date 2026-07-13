@@ -7,7 +7,7 @@
 // ============================================
 
 // Configuration
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwgPwIWk9-Df1XfntNTR8VdVSrauSVER6fSyDhF00rKvGMFFowhxzhflkahMByz8g4/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwdNxTrpzvHaEPHuso9-WWNjqA0BkZUXkqV76rIBb5ZJK_Umh5UgBxqPSmu9xmcWTmz/exec";
 const STUDENT_DATA_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTVGIPl0D_8tsJi38WRpOJrme6f-6EITTlKsepIAQj9jDqpAlG8AaeMjtsmUMFghwwRAeigIPlgN8Ru/pub?gid=0&single=true&output=csv";
 
 const SLOTS_PER_DEPARTMENT = 6; // Only applies to Phase 1
@@ -164,12 +164,12 @@ function getCurrentPhase() {
     const isThursday = (istDay === 4);
 
     // Phase 1: 6:20 AM to 7:20 AM (380 to 440 minutes)
-    const phase1Start = 6 * 60 + 20; // 380 (6:20 AM)
-    const phase1End = 7 * 60 + 20;   // 440 (7:20 AM)
+    const phase1Start = 19 * 60 + 55; // 380 (6:20 AM)
+    const phase1End = 19 * 60 + 57;   // 440 (7:20 AM)
 
     // Phase 2: 7:20 AM to 8:45 AM (440 to 525 minutes)
-    const phase2Start = 7 * 60 + 20;  // 440 (7:20 AM)
-    const phase2End = 8 * 60 + 45;    // 525 (8:45 AM)
+    const phase2Start = 19 * 60 + 57;  // 440 (7:20 AM)
+    const phase2End = 20 * 60 + 01;    // 525 (8:45 AM)
 
     if (!isThursday) return 'closed';
     if (istMinutes >= phase1Start && istMinutes < phase1End) return 'phase1';
@@ -711,9 +711,12 @@ async function submitRegistration() {
     submitBtn.innerHTML = '<div class="loading-spinner"></div> Submitting...';
 
     try {
-        // Create submission timestamp with seconds
+        // Create submission timestamp with milliseconds precision
         const submissionTime = new Date();
         const submissionTimeISO = submissionTime.toISOString();
+        const submissionTimeFormatted = formatDateWithMilliseconds(submissionTime);
+        
+        console.log(`⏱️ Submitting at: ${submissionTimeFormatted}`);
         
         const response = await fetch(APPS_SCRIPT_URL, {
             method: "POST",
@@ -726,28 +729,32 @@ async function submitRegistration() {
                 enrolNo: currentStudent.enrol,
                 department: dept,
                 name: currentStudent.name,
-                phase: currentPhase, // 'phase1' or 'phase2'
-                registrationTime: submissionTimeISO
+                phase: currentPhase,
+                registrationTime: submissionTimeISO,
+                registrationTimeFormatted: submissionTimeFormatted
             })
         });
 
         const result = await response.json();
 
         if (result.success) {
-            // Add to local data
+            // Add to local data with position from server
+            const position = result.position || 'N/A';
+            
             registrationsData.push({
                 enrol: currentStudent.enrol,
                 name: currentStudent.name,
                 department: dept,
                 phase: currentPhase,
-                submission_date: submissionTimeISO,
-                position: result.position || 'N/A'
+                submission_date: submissionTimeFormatted,
+                position: position
             });
 
+            // Immediately reload registrations to get accurate data
+            await loadRegistrationsData();
             computeDepartmentSlots();
 
             const phaseLabel = currentPhase === 'phase2' ? 'Phase 2 (Open)' : 'Phase 1 (Department)';
-            const position = result.position || 'N/A';
             
             showAlert(`✅ Success! Registered for ${dept} via ${phaseLabel}. Position: #${position}`, false);
 
@@ -764,7 +771,7 @@ async function submitRegistration() {
                             <strong>Position:</strong> 
                             <span class="position-badge">#${position}</span>
                         </div>
-                        <div><strong>Submission Time:</strong> ${submissionTime.toLocaleString()}</div>
+                        <div><strong>Submission Time:</strong> ${submissionTimeFormatted}</div>
                     </div>
                 </div>
             `;
@@ -798,8 +805,23 @@ async function submitRegistration() {
 }
 
 // ============================================
-// UI HELPERS
+// HELPER FUNCTIONS
 // ============================================
+function formatDateWithMilliseconds(date) {
+    const pad = (n) => String(n).padStart(2, '0');
+    const padMs = (n) => String(n).padStart(3, '0');
+    
+    const d = date.getDate();
+    const m = date.getMonth() + 1;
+    const y = date.getFullYear();
+    const h = date.getHours();
+    const min = date.getMinutes();
+    const s = date.getSeconds();
+    const ms = date.getMilliseconds();
+    
+    return `${pad(d)}/${pad(m)}/${y} ${pad(h)}:${pad(min)}:${pad(s)}.${padMs(ms)}`;
+}
+
 function showAlert(message, isError = true) {
     alertPopup.textContent = message;
     alertPopup.style.background = isError ? "#dc2626" : "#059669";
