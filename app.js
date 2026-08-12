@@ -7,7 +7,7 @@
 // ============================================
 
 // Configuration
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzabKm4Kcl4SZWh6mlNBup_5ZIkatCx6_goDM5KzmngtZ9WAXa1R9oMynvlY7_1IUZz/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzZhfcdwann8tQmjODQvSOa3I3voX64O6DLSTCIIuAEySH9MNXGnal-TvIznVGFDkH-/exec";
 const STUDENT_DATA_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTVGIPl0D_8tsJi38WRpOJrme6f-6EITTlKsepIAQj9jDqpAlG8AaeMjtsmUMFghwwRAeigIPlgN8Ru/pub?gid=0&single=true&output=csv";
 
 const SLOTS_PER_DEPARTMENT = 6; // Only applies to Phase 1
