@@ -7,7 +7,7 @@
 // ============================================
 
 // Configuration
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzZhfcdwann8tQmjODQvSOa3I3voX64O6DLSTCIIuAEySH9MNXGnal-TvIznVGFDkH-/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxXbJFJhAldjy6EC0ajlEI_8fSNopSlxIbaVrBxfszgvomolTDyVNUbwfSxF8iwPic/exec";
 const STUDENT_DATA_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTVGIPl0D_8tsJi38WRpOJrme6f-6EITTlKsepIAQj9jDqpAlG8AaeMjtsmUMFghwwRAeigIPlgN8Ru/pub?gid=0&single=true&output=csv";
 
 const SLOTS_PER_DEPARTMENT = 6; // Only applies to Phase 1
@@ -161,11 +161,11 @@ async function fetchPhaseTimings() {
             console.error('Failed to fetch phase timings:', data);
             // Fallback to default timings
             phaseTimings = {
-                phase1Start: { hours: 14, minutes: 55 },
-                phase1End: { hours: 14, minutes: 56 },
-                phase2Start: { hours: 14, minutes: 56 },
-                phase2End: { hours: 14, minutes: 57 },
-                dayOfWeek: 3 // Thursday
+                phase1Start: { hours: 6, minutes: 20 },
+                phase1End: { hours: 7, minutes: 20 },
+                phase2Start: { hours: 7, minutes: 20 },
+                phase2End: { hours: 8, minutes: 45 },
+                dayOfWeek: 4 // Thursday
             };
             return false;
         }
@@ -173,11 +173,11 @@ async function fetchPhaseTimings() {
         console.error('Error fetching phase timings:', error);
         // Fallback to default timings
         phaseTimings = {
-            phase1Start: { hours: 14, minutes: 55 },
-            phase1End: { hours: 14, minutes: 56 },
-            phase2Start: { hours: 14, minutes: 56 },
-            phase2End: { hours: 14, minutes: 57 },
-            dayOfWeek: 3 // Thursday
+            phase1Start: { hours: 6, minutes: 20 },
+            phase1End: { hours: 7, minutes: 20 },
+            phase2Start: { hours: 7, minutes: 20 },
+            phase2End: { hours: 8, minutes: 45 },
+            dayOfWeek: 4 // Thursday
         };
         return false;
     }
