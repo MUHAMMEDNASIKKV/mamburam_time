@@ -161,11 +161,11 @@ async function fetchPhaseTimings() {
             console.error('Failed to fetch phase timings:', data);
             // Fallback to default timings
             phaseTimings = {
-                phase1Start: { hours: 6, minutes: 20 },
-                phase1End: { hours: 7, minutes: 20 },
-                phase2Start: { hours: 7, minutes: 20 },
-                phase2End: { hours: 8, minutes: 45 },
-                dayOfWeek: 4 // Thursday
+                phase1Start: { hours: 14, minutes: 55 },
+                phase1End: { hours: 14, minutes: 56 },
+                phase2Start: { hours: 14, minutes: 56 },
+                phase2End: { hours: 14, minutes: 57 },
+                dayOfWeek: 3 // Thursday
             };
             return false;
         }
@@ -173,11 +173,11 @@ async function fetchPhaseTimings() {
         console.error('Error fetching phase timings:', error);
         // Fallback to default timings
         phaseTimings = {
-            phase1Start: { hours: 6, minutes: 20 },
-            phase1End: { hours: 7, minutes: 20 },
-            phase2Start: { hours: 7, minutes: 20 },
-            phase2End: { hours: 8, minutes: 45 },
-            dayOfWeek: 4 // Thursday
+            phase1Start: { hours: 14, minutes: 55 },
+            phase1End: { hours: 14, minutes: 56 },
+            phase2Start: { hours: 14, minutes: 56 },
+            phase2End: { hours: 14, minutes: 57 },
+            dayOfWeek: 3 // Thursday
         };
         return false;
     }
