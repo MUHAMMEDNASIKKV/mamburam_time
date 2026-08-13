@@ -7,7 +7,7 @@
 // ============================================
 
 // Configuration
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxXbJFJhAldjy6EC0ajlEI_8fSNopSlxIbaVrBxfszgvomolTDyVNUbwfSxF8iwPic/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwD-yBVWFDgMnDGjUP_3gKja1CH5WAe5d0K0dskjZXHyT765tLM3IBozmcE8wB3b5cK/exec";
 const STUDENT_DATA_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTVGIPl0D_8tsJi38WRpOJrme6f-6EITTlKsepIAQj9jDqpAlG8AaeMjtsmUMFghwwRAeigIPlgN8Ru/pub?gid=0&single=true&output=csv";
 
 const SLOTS_PER_DEPARTMENT = 6; // Only applies to Phase 1
@@ -122,7 +122,6 @@ let departmentSlots = {}; // Phase 1 slot tracking
 let currentStudent = null;
 let currentPhase = 'closed'; // 'phase1', 'phase2', 'closed'
 let phase2RegistrationCount = 0;
-let phaseTimings = {}; // Will be fetched from backend
 
 // DOM Elements
 const enrolInput = document.getElementById('enrolNo');
@@ -146,119 +145,66 @@ const phaseMessageText = document.getElementById('phaseMessageText');
 const phase2Stats = document.getElementById('phase2Stats');
 
 // ============================================
-// FETCH PHASE TIMINGS FROM BACKEND
+// TIME-BASED PHASE DETECTION (IST = UTC+5:30)
 // ============================================
-async function fetchPhaseTimings() {
-    try {
-        const response = await fetch(`${APPS_SCRIPT_URL}?action=getPhaseTimings&t=${Date.now()}`);
-        const data = await response.json();
-        
-        if (data.success && data.timings) {
-            phaseTimings = data.timings;
-            console.log('✅ Phase timings loaded from server:', phaseTimings);
-            return true;
-        } else {
-            console.error('Failed to fetch phase timings:', data);
-            // Fallback to default timings
-            phaseTimings = {
-                phase1Start: { hours: 6, minutes: 20 },
-                phase1End: { hours: 7, minutes: 20 },
-                phase2Start: { hours: 7, minutes: 20 },
-                phase2End: { hours: 8, minutes: 45 },
-                dayOfWeek: 4 // Thursday
-            };
-            return false;
-        }
-    } catch (error) {
-        console.error('Error fetching phase timings:', error);
-        // Fallback to default timings
-        phaseTimings = {
-            phase1Start: { hours: 6, minutes: 20 },
-            phase1End: { hours: 7, minutes: 20 },
-            phase2Start: { hours: 7, minutes: 20 },
-            phase2End: { hours: 8, minutes: 45 },
-            dayOfWeek: 4 // Thursday
-        };
-        return false;
-    }
+function getCurrentPhase() {
+    const now = new Date();
+
+    // Convert to IST
+    const istOffset = 5.5 * 60; // 330 minutes
+    const utcMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
+    let istMinutes = utcMinutes + istOffset;
+    if (istMinutes >= 1440) istMinutes -= 1440;
+    if (istMinutes < 0) istMinutes += 1440;
+
+    const day = now.getUTCDay();
+    const istDay = (utcMinutes + istOffset >= 1440) ? (day + 1) % 7 : day;
+
+    // Thursday = 4
+    const isThursday = (istDay === 4);
+
+    // Phase 1: 6:20 AM to 7:20 AM (380 to 440 minutes)
+    const phase1Start = 6 * 60 + 20; // 380 (6:20 AM)
+    const phase1End = 7 * 60 + 20;   // 440 (7:20 AM)
+
+    // Phase 2: 7:20 AM to 8:45 AM (440 to 525 minutes)
+    const phase2Start = 7 * 60 + 20;  // 440 (7:20 AM)
+    const phase2End = 8 * 60 + 45;    // 525 (8:45 AM)
+
+    if (!isThursday) return 'closed';
+    if (istMinutes >= phase1Start && istMinutes < phase1End) return 'phase1';
+    if (istMinutes >= phase2Start && istMinutes < phase2End) return 'phase2';
+    return 'closed';
 }
 
 // ============================================
-// TIME-BASED PHASE DETECTION (Using Server Time)
+// TIMER UI
 // ============================================
-async function getPhaseFromServer() {
-    try {
-        const response = await fetch(`${APPS_SCRIPT_URL}?action=getCurrentPhase&t=${Date.now()}`);
-        const data = await response.json();
-        
-        if (data.success && data.phase) {
-            return data.phase;
-        } else {
-            console.error('Failed to get phase from server:', data);
-            return 'closed';
-        }
-    } catch (error) {
-        console.error('Error getting phase from server:', error);
-        return 'closed';
-    }
-}
+function updateTimer() {
+    currentPhase = getCurrentPhase();
 
-// ============================================
-// UPDATE TIMER UI USING SERVER TIME
-// ============================================
-async function updateTimerFromServer() {
-    try {
-        const response = await fetch(`${APPS_SCRIPT_URL}?action=getTimerInfo&t=${Date.now()}`);
-        const data = await response.json();
-        
-        if (data.success) {
-            currentPhase = data.phase;
-            
-            if (currentPhase === 'phase1') {
-                timerBox.className = 'timer-box';
-                timerText.innerHTML = `<i class="fas fa-clock mr-1"></i> Phase 1: Department Registration Open (6 slots per dept)`;
-                phaseInfo.classList.remove('hidden');
-                phaseInfo.className = 'info-banner';
-                phaseText.textContent = `Phase 1: Each department has 6 slots. First come, first served. (${data.phase1Start} - ${data.phase1End})`;
-                selectionLabel.textContent = 'Confirm Your Department Registration';
-                
-                if (data.timeRemaining) {
-                    timerText.innerHTML += ` <span class="text-yellow-200">(${data.timeRemaining} remaining)</span>`;
-                }
-                
-            } else if (currentPhase === 'phase2') {
-                timerBox.className = 'timer-box';
-                timerText.innerHTML = `<i class="fas fa-clock mr-1"></i> Phase 2: Open Registration (No limits)`;
-                phaseInfo.classList.remove('hidden');
-                phaseInfo.className = 'info-banner';
-                phaseText.textContent = `Phase 2: Registration is open to everyone. No department limits. (${data.phase2Start} - ${data.phase2End})`;
-                selectionLabel.textContent = 'Register Now';
-                
-                if (data.timeRemaining) {
-                    timerText.innerHTML += ` <span class="text-yellow-200">(${data.timeRemaining} remaining)</span>`;
-                }
-                
-            } else {
-                timerBox.className = 'timer-box timer-closed';
-                timerText.innerHTML = `<i class="fas fa-lock mr-1"></i> Registration Closed`;
-                phaseInfo.classList.remove('hidden');
-                phaseInfo.className = 'info-banner';
-                
-                if (data.nextOpening) {
-                    phaseText.textContent = `Registration closed. Next opening: ${data.nextOpening}`;
-                } else {
-                    phaseText.textContent = 'Registration only open on Thursdays from 6:20 AM to 8:45 AM IST.';
-                }
-            }
-            
-            return true;
-        } else {
-            console.error('Failed to get timer info:', data);
-            return false;
-        }
-    } catch (error) {
-        console.error('Error getting timer info:', error);
-        return false;
+    if (currentPhase === 'phase1') {
+        timerBox.className = 'timer-box';
+        timerText.innerHTML = '<i class="fas fa-clock mr-1"></i> Phase 1: Department Registration Open (6 slots per dept)';
+        phaseInfo.classList.remove('hidden');
+        phaseInfo.className = 'info-banner';
+        phaseText.textContent = 'Phase 1: Each department has 6 slots. First come, first served. (6:20 AM - 7:20 AM)';
+        selectionLabel.textContent = 'Confirm Your Department Registration';
+
+    } else if (currentPhase === 'phase2') {
+        timerBox.className = 'timer-box';
+        timerText.innerHTML = '<i class="fas fa-clock mr-1"></i> Phase 2: Open Registration (No limits)';
+        phaseInfo.classList.remove('hidden');
+        phaseInfo.className = 'info-banner';
+        phaseText.textContent = 'Phase 2: Registration is open to everyone. No department limits. (7:20 AM - 8:45 AM)';
+        selectionLabel.textContent = 'Register Now';
+
+    } else {
+        timerBox.className = 'timer-box timer-closed';
+        timerText.innerHTML = '<i class="fas fa-lock mr-1"></i> Registration Closed';
+        phaseInfo.classList.remove('hidden');
+        phaseInfo.className = 'info-banner';
+        phaseText.textContent = 'Registration only open on Thursdays from 6:20 AM to 8:45 AM IST.';
     }
 }
 
@@ -270,9 +216,6 @@ setupEventListeners();
 (async function init() {
     console.log('🚀 Initializing PG Quota Portal...');
     
-    // Fetch phase timings from backend
-    await fetchPhaseTimings();
-    
     // Load student data first
     const dataLoaded = await loadStudentData();
     if (!dataLoaded) {
@@ -281,9 +224,7 @@ setupEventListeners();
     
     await loadRegistrationsData();
     computeDepartmentSlots();
-    
-    // Update timer using server time
-    await updateTimerFromServer();
+    updateTimer();
     updateUIForPhase();
 
     console.log('🚀 Portal ready!');
@@ -291,23 +232,19 @@ setupEventListeners();
     console.log(`   Phase 2: Unlimited submissions`);
     console.log(`   Students loaded: ${Object.keys(STUDENT_DATABASE).length}`);
     console.log(`   Departments: ${ALL_DEPARTMENTS.length}`);
-    console.log(`   Current Phase: ${currentPhase}`);
 
-    // Check phase every 30 seconds using server
-    setInterval(async () => {
-        const newPhase = await getPhaseFromServer();
+    // Check phase every 30 seconds
+    setInterval(() => {
+        const newPhase = getCurrentPhase();
         if (newPhase !== currentPhase) {
             console.log(`Phase changed: ${currentPhase} -> ${newPhase}`);
             currentPhase = newPhase;
-            await updateTimerFromServer();
+            updateTimer();
             updateUIForPhase();
             if (currentStudent) {
                 checkExistingRegistration();
                 renderSelectionCard();
             }
-        } else {
-            // Still update timer display even if phase hasn't changed
-            await updateTimerFromServer();
         }
     }, 30000);
 
@@ -741,15 +678,10 @@ async function submitRegistration() {
         return;
     }
 
-    // Check phase from server before submission
-    const serverPhase = await getPhaseFromServer();
-    if (serverPhase === 'closed') {
+    if (currentPhase === 'closed') {
         showAlert("🔒 Registration is closed. Opens Thursday 6:20 AM - 8:45 AM IST.");
         return;
     }
-    
-    // Update current phase from server
-    currentPhase = serverPhase;
 
     const alreadyRegistered = registrationsData.some(r =>
         String(r.enrol).trim() === String(currentStudent.enrol).trim() &&
@@ -779,7 +711,13 @@ async function submitRegistration() {
     submitBtn.innerHTML = '<div class="loading-spinner"></div> Submitting...';
 
     try {
-        // Let server generate the timestamp
+        // Create submission timestamp with milliseconds precision
+        const submissionTime = new Date();
+        const submissionTimeISO = submissionTime.toISOString();
+        const submissionTimeFormatted = formatDateWithMilliseconds(submissionTime);
+        
+        console.log(`⏱️ Submitting at: ${submissionTimeFormatted}`);
+        
         const response = await fetch(APPS_SCRIPT_URL, {
             method: "POST",
             mode: "cors",
@@ -791,8 +729,9 @@ async function submitRegistration() {
                 enrolNo: currentStudent.enrol,
                 department: dept,
                 name: currentStudent.name,
-                phase: currentPhase
-                // No client-side timestamp - server will generate it
+                phase: currentPhase,
+                registrationTime: submissionTimeISO,
+                registrationTimeFormatted: submissionTimeFormatted
             })
         });
 
@@ -807,7 +746,7 @@ async function submitRegistration() {
                 name: currentStudent.name,
                 department: dept,
                 phase: currentPhase,
-                submission_date: result.submissionDate || new Date().toLocaleString(),
+                submission_date: submissionTimeFormatted,
                 position: position
             });
 
@@ -832,7 +771,7 @@ async function submitRegistration() {
                             <strong>Position:</strong> 
                             <span class="position-badge">#${position}</span>
                         </div>
-                        <div><strong>Submission Time:</strong> ${result.submissionDate || 'N/A'}</div>
+                        <div><strong>Submission Time:</strong> ${submissionTimeFormatted}</div>
                     </div>
                 </div>
             `;
@@ -841,7 +780,7 @@ async function submitRegistration() {
             submitBtn.style.opacity = "0.6";
             submitBtn.style.cursor = "not-allowed";
             
-            await updateTimerFromServer();
+            updateTimer();
         } else {
             showAlert(`❌ Registration failed: ${result.error || "Unknown error"}`);
             await loadRegistrationsData();
@@ -868,6 +807,21 @@ async function submitRegistration() {
 // ============================================
 // HELPER FUNCTIONS
 // ============================================
+function formatDateWithMilliseconds(date) {
+    const pad = (n) => String(n).padStart(2, '0');
+    const padMs = (n) => String(n).padStart(3, '0');
+    
+    const d = date.getDate();
+    const m = date.getMonth() + 1;
+    const y = date.getFullYear();
+    const h = date.getHours();
+    const min = date.getMinutes();
+    const s = date.getSeconds();
+    const ms = date.getMilliseconds();
+    
+    return `${pad(d)}/${pad(m)}/${y} ${pad(h)}:${pad(min)}:${pad(s)}.${padMs(ms)}`;
+}
+
 function showAlert(message, isError = true) {
     alertPopup.textContent = message;
     alertPopup.style.background = isError ? "#dc2626" : "#059669";
@@ -896,4 +850,3 @@ document.addEventListener("keydown", function(e) {
 
 console.log('%c🌟 PG Quota Portal - Phase 1: 6/dept | Phase 2: Unlimited 🌟', 'color: #059669; font-size: 16px; font-weight: bold;');
 console.log('%c📊 Student data loaded from Google Sheets CSV', 'color: #2563eb;');
-console.log('%c⏰ Time is managed by server - no client-side cheating possible', 'color: #dc2626; font-weight: bold;');
