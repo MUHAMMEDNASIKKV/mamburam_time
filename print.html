@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Mamburam Swalath · Admin Panel</title>
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #f4f7fc; font-family: 'Segoe UI', sans-serif; padding: 2.5rem 1rem; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        .container { max-width: 1100px; width: 100%; background: #ffffff; border-radius: 24px; box-shadow: 0 15px 35px rgba(11, 43, 74, 0.05); padding: 2.5rem; display: flex; flex-direction: column; gap: 2rem; }
+        .main-heading { text-align: center; }
+        .main-heading h1 { font-size: 2.2rem; color: #0b2b4a; text-transform: uppercase; }
+        
+        /* Upload Section */
+        .upload-section { border: 2px dashed #cbd5e1; padding: 2rem; border-radius: 16px; text-align: center; background: #f8fafc; transition: 0.3s; }
+        .upload-section:hover { border-color: #0b2b4a; background: #f1f5f9; }
+        .file-input { display: none; }
+        .file-label { cursor: pointer; color: #0b2b4a; font-weight: 700; font-size: 1.1rem; display: block; }
+        
+        .filter-panel { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.2rem; background: #f8fafd; padding: 1.2rem 1.5rem; border-radius: 16px; border: 1px solid #e2e8f0; }
+        .filter-controls { display: flex; align-items: center; gap: 0.75rem; }
+        .filter-input-group input { border: 1px solid #cbd5e1; padding: 0.6rem; border-radius: 10px; width: 80px; text-align: center; font-weight: 600; }
+        
+        .btn { padding: 0.65rem 1.4rem; border-radius: 12px; font-weight: 600; cursor: pointer; border: none; transition: 0.2s; }
+        .btn-primary { background: #0b2b4a; color: white; }
+        .btn-reset { background: white; border: 1px solid #cbd5e1; color: #475569; }
+        
+        .stats-row { display: flex; gap: 0.75rem; }
+        .stat-item { background: #f1f5f9; padding: 0.4rem 1rem; border-radius: 10px; font-size: 0.85rem; font-weight: 600; }
+        
+        .table-responsive { overflow-x: auto; border-radius: 12px; border: 1px solid #e2e8f0; }
+        table { width: 100%; border-collapse: collapse; white-space: nowrap; }
+        th { background: #f8fafc; padding: 1rem; text-align: left; border-bottom: 2px solid #e2e8f0; }
+        td { padding: 0.9rem 1rem; border-bottom: 1px solid #f1f5f9; }
+        
+        .dept-badge { background: #f0f4f8; padding: 0.25rem 0.75rem; border-radius: 8px; font-weight: 600; font-size: 0.85rem; }
+        
+        .print-btn { background: #0b2b4a; color: white; padding: 1rem 2.5rem; border-radius: 14px; font-size: 1rem; font-weight: 700; cursor: pointer; border: none; align-self: flex-end; }
+        
+        #pdf-render-zone { display: none; }
+        body.printing-mode .container { display: none; }
+        body.printing-mode #pdf-render-zone { display: block; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="main-heading">
+            <h1>Mamburam Swalath</h1>
+            <p>Upload Excel/CSV to Generate Department-Sorted PDF</p>
+        </div>
+
+        <!-- 1. UPLOAD BOX -->
+        <div class="upload-section" id="dropZone">
+            <label for="fileInput" class="file-label">
+                <span>📁</span> Click to Upload or Drag & Drop Excel/CSV
+                <p style="font-size: 0.8rem; font-weight: 400; color: #64748b; margin-top: 5px;">Supports .csv, .xlsx, .xls</p>
+            </label>
+            <input type="file" id="fileInput" class="file-input" accept=".csv, .xlsx, .xls">
+        </div>
+
+        <div class="filter-panel">
+            <div class="filter-controls">
+                <span style="font-weight: 600;">Select first</span>
+                <div class="filter-input-group">
+                    <input type="number" id="studentCountInput" value="100">
+                </div>
+                <span style="font-weight: 600;">submitted students</span>
+                <button class="btn btn-primary" id="applyFilterBtn">Apply</button>
+                <button class="btn btn-reset" id="resetFilterBtn">Show All</button>
+            </div>
+        </div>
+
+        <div class="stats-row">
+            <span class="stat-item">Total in File: <span id="totalInSheet">0</span></span>
+            <span class="stat-item">Registered: <span id="totalRegistered">0</span></span>
+            <span class="stat-item" style="background:#e0f2fe;">Selected: <span id="selectedCount">0</span></span>
+        </div>
+
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Sl.No</th>
+                        <th>Enrl No</th>
+                        <th>Name</th>
+                        <th>Department</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr><td colspan="4" style="text-align:center; padding: 2rem; color: #94a3b8;">No file uploaded yet.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <button class="print-btn" id="printPDFBtn">📄 Download PDF</button>
+    </div>
+
+    <div id="pdf-render-zone"></div>
+
+    <script>
+        // --- CONFIG ---
+        const DEPT_ORDER = [
+            "Quran and Related Sciences", "Hadith and Related Sciences", "Fiqh and Usul al-Fiqh",
+            "Islamic Economics and Finance", "Aqeeda and Philosophy", "Study of Religion",
+            "Civilizational Studies", "Community Leadership and Social Change", "Societal Development",
+            "Arabic Language and Literature", "Translation and Comparative Literature",
+            "Governance and Public Administration", "Law, Justice and Governance",
+            "Educational leadership and management", "Media and Communication"
+        ];
+
+        const deptRank = new Map(DEPT_ORDER.map((d, i) => [d.toLowerCase().trim(), i]));
+        function getDeptRank(dept) {
+            const key = String(dept).toLowerCase().trim();
+            return deptRank.has(key) ? deptRank.get(key) : 999;
+        }
+
+        let registeredStudents = []; 
+        let filteredStudents = [];
+
+        // --- FILE HANDLING ---
+        const fileInput = document.getElementById('fileInput');
+        fileInput.addEventListener('change', handleFileUpload);
+
+        function handleFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const data = new Uint8Array(evt.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                
+                // Convert to JSON
+                const json = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+                processData(json);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function processData(rawData) {
+            document.getElementById('totalInSheet').textContent = rawData.length;
+
+            // Normalize and Filter: Must have phase, position, and submitted_at
+            registeredStudents = rawData.filter(row => {
+                const phase = row['phase'] || row['Phase'];
+                const subDate = row['submitted_at'] || row['submitted_date'] || row['submission_date'];
+                const pos = row['position'] || row['Position'];
+                return phase && subDate && pos;
+            }).map(row => ({
+                enrl: row['enrol_no'] || row['enrl_no'] || row['enrl'] || "N/A",
+                name: row['name'] || row['Name'] || "Unknown",
+                department: row['department'] || row['Department'] || "Other",
+                submitted_at: new Date(row['submitted_at'] || row['submitted_date'] || row['submission_date']),
+                position: row['position'] || row['Position']
+            }));
+
+            document.getElementById('totalRegistered').textContent = registeredStudents.length;
+
+            // Initial sort by Time (Earliest first)
+            registeredStudents.sort((a, b) => a.submitted_at - b.submitted_at);
+
+            applyFilterAndSort(null);
+        }
+
+        function applyFilterAndSort(limit) {
+            // 1. Take first N based on submission time
+            let base = [...registeredStudents];
+            if (limit && limit > 0) {
+                base = base.slice(0, limit);
+            }
+
+            // 2. Re-sort the subset by Department Order
+            filteredStudents = base.sort((a, b) => {
+                const rA = getDeptRank(a.department);
+                const rB = getDeptRank(b.department);
+                if (rA !== rB) return rA - rB;
+                return a.submitted_at - b.submitted_at; // Sub-sort by time
+            });
+
+            renderTable();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            document.getElementById('selectedCount').textContent = filteredStudents.length;
+
+            if (filteredStudents.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 2rem;">No matching data.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filteredStudents.map((s, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>${s.enrl}</td>
+                    <td><strong>${s.name}</strong></td>
+                    <td><span class="dept-badge">${s.department}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        // --- BUTTON ACTIONS ---
+        document.getElementById('applyFilterBtn').addEventListener('click', () => {
+            const val = parseInt(document.getElementById('studentCountInput').value);
+            applyFilterAndSort(val);
+        });
+
+        document.getElementById('resetFilterBtn').addEventListener('click', () => {
+            applyFilterAndSort(null);
+        });
+
+        // --- PDF GENERATION ---
+        document.getElementById('printPDFBtn').addEventListener('click', () => {
+            if (filteredStudents.length === 0) return alert("No data to print!");
+
+            const renderZone = document.getElementById('pdf-render-zone');
+            const dateStr = new Date().toLocaleDateString('en-GB').replace(/\//g, '-');
+            const PER_PAGE = 22;
+            let html = '';
+
+            for (let i = 0; i < filteredStudents.length; i += PER_PAGE) {
+                const chunk = filteredStudents.slice(i, i + PER_PAGE);
+                html += `
+                    <div style="padding: 40px; height: 100%; page-break-after: always; font-family: Arial, sans-serif;">
+                        <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">
+                            <h1 style="margin:0; font-size: 22px;">MAMBURAM SWALATH</h1>
+                            <p style="margin:5px 0 0; font-weight:bold;">Registration List (${dateStr})</p>
+                        </div>
+                        <table style="width:100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #f1f1f1; border: 1px solid #000;">
+                                    <th style="padding: 10px; border: 1px solid #000; text-align: left; width: 10%;">Sl.No</th>
+                                    <th style="padding: 10px; border: 1px solid #000; text-align: left; width: 20%;">Enrl No</th>
+                                    <th style="padding: 10px; border: 1px solid #000; text-align: left; width: 40%;">Name</th>
+                                    <th style="padding: 10px; border: 1px solid #000; text-align: left; width: 30%;">Department</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${chunk.map((s, idx) => `
+                                    <tr>
+                                        <td style="padding: 9px; border: 1px solid #000;">${i + idx + 1}</td>
+                                        <td style="padding: 9px; border: 1px solid #000;">${s.enrl}</td>
+                                        <td style="padding: 9px; border: 1px solid #000; font-weight:bold;">${s.name}</td>
+                                        <td style="padding: 9px; border: 1px solid #000;">${s.department}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                        <div style="margin-top: 20px; font-size: 10px; text-align: right;">Page ${Math.floor(i/PER_PAGE) + 1}</div>
+                    </div>
+                `;
+            }
+
+            renderZone.innerHTML = html;
+            document.body.classList.add('printing-mode');
+
+            html2pdf().set({
+                margin: 0,
+                filename: `Mamburam_Swalath_${dateStr}.pdf`,
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            }).from(renderZone).save().then(() => {
+                document.body.classList.remove('printing-mode');
+            });
+        });
+    </script>
+</body>
+</html>
